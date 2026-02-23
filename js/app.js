@@ -8,6 +8,7 @@
 
 const CONFIG = {
   // Power Automate POST URL. Set via settings or console: setPowerAutomateUrl('URL')
+  // For testing, use webhook.site URL. For production, use Power Automate HTTP trigger URL.
   ENDPOINT_URL: localStorage.getItem('powerAutomateUrl') || '',
 
   PROJECT: 'M3',
@@ -261,16 +262,18 @@ async function syncPending() {
         const payload = { ...obs };
         delete payload.status; // Don't send internal status field
 
-        const response = await fetch(url, {
+        // Use no-cors mode for compatibility with webhook.site and similar test endpoints.
+        // With no-cors we can't read the response, so a successful fetch = sent.
+        await fetch(url, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify(payload),
         });
 
-        if (response.ok) {
-          await deleteObservation(obs.id);
-          syncedCount++;
-        }
+        // If fetch didn't throw, the request was sent
+        await deleteObservation(obs.id);
+        syncedCount++;
       } catch (err) {
         // Network error for this item — stop trying rest, will retry later
         break;
@@ -578,18 +581,17 @@ async function submitObservation() {
       const payload = { ...observation };
       delete payload.status;
 
-      const response = await fetch(CONFIG.ENDPOINT_URL, {
+      // Use no-cors for compatibility with webhook.site and similar test endpoints.
+      await fetch(CONFIG.ENDPOINT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify(payload),
       });
 
-      if (response.ok) {
-        await deleteObservation(observation.id);
-        showModal('success');
-      } else {
-        showModal('queued');
-      }
+      // If fetch didn't throw, the request was sent
+      await deleteObservation(observation.id);
+      showModal('success');
     } catch (err) {
       showModal('queued');
     }
