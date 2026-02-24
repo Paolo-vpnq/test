@@ -184,8 +184,9 @@ let db = null;
 
 // ===== IndexedDB ==============================================
 const DB_NAME = 'm3-safety-observer';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Bumped from 1 to add settings store
 const STORE_NAME = 'observations';
+const SETTINGS_STORE = 'settings';
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -195,6 +196,9 @@ function openDB() {
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME, { keyPath: 'id' });
       }
+      if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
+        db.createObjectStore(SETTINGS_STORE, { keyPath: 'key' });
+      }
     };
     request.onsuccess = (e) => {
       db = e.target.result;
@@ -202,6 +206,40 @@ function openDB() {
     };
     request.onerror = (e) => reject(e.target.error);
   });
+}
+
+// Settings persistence via IndexedDB (survives app reinstalls better than localStorage)
+function saveSetting(key, value) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(SETTINGS_STORE, 'readwrite');
+    tx.objectStore(SETTINGS_STORE).put({ key: key, value: value });
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function getSetting(key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(SETTINGS_STORE, 'readonly');
+    const request = tx.objectStore(SETTINGS_STORE).get(key);
+    request.onsuccess = () => resolve(request.result ? request.result.value : null);
+    request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function saveIdentity(name, contractor, company) {
+  return Promise.all([
+    saveSetting('savedName', name),
+    saveSetting('savedContractor', contractor),
+    saveSetting('savedCompany', company),
+  ]);
+}
+
+async function loadIdentity() {
+  const name = await getSetting('savedName');
+  const contractor = await getSetting('savedContractor');
+  const company = await getSetting('savedCompany');
+  return { name, contractor, company };
 }
 
 function addObservation(observation) {
@@ -356,6 +394,7 @@ function applyTranslations() {
 function setLanguage(lang) {
   currentLang = lang;
   localStorage.setItem('appLang', lang);
+  if (db) saveSetting('appLang', lang).catch(() => {});
   document.getElementById('langSelect').value = lang;
   applyTranslations();
 }
@@ -735,10 +774,8 @@ async function submitObservation() {
     status: 'pending', // Internal — not sent to endpoint
   };
 
-  // Save identity for next time
-  localStorage.setItem('savedName', observation.observerName);
-  localStorage.setItem('savedContractor', observation.mainContractor);
-  localStorage.setItem('savedCompany', observation.companyName);
+  // Save identity for next time (IndexedDB persists better than localStorage)
+  saveIdentity(observation.observerName, observation.mainContractor, observation.companyName);
 
   try {
     await addObservation(observation);
@@ -826,14 +863,24 @@ function resetForm() {
 }
 
 // ===== SETTINGS ===============================================
-function openSettings() {
-  document.getElementById('settingsName').value = localStorage.getItem('savedName') || '';
-  document.getElementById('settingsCompany').value = localStorage.getItem('savedCompany') || '';
+async function openSettings() {
   document.getElementById('settingsEndpoint').value = CONFIG.ENDPOINT_URL || '';
 
   // Populate contractor dropdown in settings
   populateContractorSelect('settingsContractor');
-  document.getElementById('settingsContractor').value = localStorage.getItem('savedContractor') || '';
+
+  // Load identity from IndexedDB
+  try {
+    const identity = await loadIdentity();
+    document.getElementById('settingsName').value = identity.name || '';
+    document.getElementById('settingsCompany').value = identity.company || '';
+    document.getElementById('settingsContractor').value = identity.contractor || '';
+  } catch (e) {
+    // Fallback to current form values
+    document.getElementById('settingsName').value = document.getElementById('observerName').value;
+    document.getElementById('settingsCompany').value = document.getElementById('companyName').value;
+    document.getElementById('settingsContractor').value = document.getElementById('mainContractor').value;
+  }
 
   document.getElementById('settingsScreen').classList.add('visible');
 }
@@ -848,13 +895,15 @@ function saveSettings() {
   const company = document.getElementById('settingsCompany').value.trim();
   const endpoint = document.getElementById('settingsEndpoint').value.trim();
 
-  if (name) localStorage.setItem('savedName', name);
-  if (contractor) localStorage.setItem('savedContractor', contractor);
-  if (company) localStorage.setItem('savedCompany', company);
+  // Save identity to IndexedDB (persists better than localStorage)
+  if (name || contractor || company) {
+    saveIdentity(name, contractor, company);
+  }
 
   if (endpoint) {
     localStorage.setItem('powerAutomateUrl', endpoint);
     CONFIG.ENDPOINT_URL = endpoint;
+    saveSetting('powerAutomateUrl', endpoint).catch(() => {});
     sendEndpointToSW();
   }
 
@@ -910,6 +959,7 @@ function sendEndpointToSW() {
 window.setPowerAutomateUrl = function(url) {
   localStorage.setItem('powerAutomateUrl', url);
   CONFIG.ENDPOINT_URL = url;
+  saveSetting('powerAutomateUrl', url).catch(() => {});
   sendEndpointToSW();
   console.log('Power Automate URL set to:', url);
 };
@@ -919,10 +969,20 @@ async function init() {
   // Open IndexedDB
   await openDB();
 
+  // Restore endpoint URL from IndexedDB (more persistent than localStorage)
+  try {
+    const savedEndpoint = await getSetting('powerAutomateUrl');
+    if (savedEndpoint) CONFIG.ENDPOINT_URL = savedEndpoint;
+  } catch (e) {}
+
   // Parse QR URL params
   parseUrlParams();
 
-  // Restore language
+  // Restore language (try IndexedDB first, fallback to localStorage)
+  try {
+    const savedLang = await getSetting('appLang');
+    if (savedLang) currentLang = savedLang;
+  } catch (e) {}
   setLanguage(currentLang);
 
   // Populate dropdowns
@@ -931,13 +991,21 @@ async function init() {
   populateCategorySelect();
   initCompanyDropdown();
 
-  // Restore saved identity
-  const savedName = localStorage.getItem('savedName');
-  const savedContractor = localStorage.getItem('savedContractor');
-  const savedCompany = localStorage.getItem('savedCompany');
-  if (savedName) document.getElementById('observerName').value = savedName;
-  if (savedContractor) document.getElementById('mainContractor').value = savedContractor;
-  if (savedCompany) document.getElementById('companyName').value = savedCompany;
+  // Restore saved identity from IndexedDB (persists across reinstalls)
+  try {
+    const identity = await loadIdentity();
+    if (identity.name) document.getElementById('observerName').value = identity.name;
+    if (identity.contractor) document.getElementById('mainContractor').value = identity.contractor;
+    if (identity.company) document.getElementById('companyName').value = identity.company;
+  } catch (e) {
+    // Fall back to localStorage for migration from old version
+    const savedName = localStorage.getItem('savedName');
+    const savedContractor = localStorage.getItem('savedContractor');
+    const savedCompany = localStorage.getItem('savedCompany');
+    if (savedName) document.getElementById('observerName').value = savedName;
+    if (savedContractor) document.getElementById('mainContractor').value = savedContractor;
+    if (savedCompany) document.getElementById('companyName').value = savedCompany;
+  }
 
   // Status
   updateStatus();

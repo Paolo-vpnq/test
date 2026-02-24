@@ -1,6 +1,7 @@
-const CACHE_NAME = 'm3-safety-observer-v4';
+const CACHE_NAME = 'm3-safety-observer-v5';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
+const SETTINGS_STORE = 'settings';
 
 // Install: cache app shell
 self.addEventListener('install', event => {
@@ -67,9 +68,27 @@ self.addEventListener('sync', event => {
 
 function openDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
+    const request = indexedDB.open(DB_NAME, 2);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
+        db.createObjectStore(SETTINGS_STORE, { keyPath: 'key' });
+      }
+    };
     request.onsuccess = (e) => resolve(e.target.result);
     request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function getSettingFromDB(db, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(SETTINGS_STORE, 'readonly');
+    const request = tx.objectStore(SETTINGS_STORE).get(key);
+    request.onsuccess = () => resolve(request.result ? request.result.value : null);
+    request.onerror = () => resolve(null);
   });
 }
 
@@ -99,10 +118,11 @@ async function syncAllPending() {
     return; // DB not available yet
   }
 
-  // Read endpoint URL from a known cache or use a message channel.
-  // Service workers can't access localStorage, so we read the URL
-  // that the main app posts to us via message.
-  const endpointUrl = self._endpointUrl;
+  // Try postMessage value first, then fall back to IndexedDB setting
+  let endpointUrl = self._endpointUrl;
+  if (!endpointUrl) {
+    endpointUrl = await getSettingFromDB(db, 'powerAutomateUrl');
+  }
   if (!endpointUrl) return;
 
   const pending = await getAllPending(db);
