@@ -9,7 +9,7 @@
 const CONFIG = {
   // Power Automate POST URL. Set via settings or console: setPowerAutomateUrl('URL')
   // For testing, use webhook.site URL. For production, use Power Automate HTTP trigger URL.
-  ENDPOINT_URL: localStorage.getItem('powerAutomateUrl') || '',
+  ENDPOINT_URL: localStorage.getItem('powerAutomateUrl') || 'https://webhook.site/6eebf958-ce28-4bcc-879a-ac81deddb63b',
 
   PROJECT: 'M3',
 
@@ -859,7 +859,7 @@ async function init() {
 
   // Register service worker
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(err => {
+    navigator.serviceWorker.register('sw.js').catch(err => {
       console.error('SW registration failed:', err);
     });
   }

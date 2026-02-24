@@ -1,18 +1,21 @@
-const CACHE_NAME = 'm3-safety-observer-v1';
-const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/app.js',
-  '/manifest.json'
-];
+const CACHE_NAME = 'm3-safety-observer-v2';
 
-// Install: cache all app shell assets
+// Install: cache app shell
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS_TO_CACHE))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then(cache => {
+      // Use relative URLs — works regardless of subdirectory
+      const base = self.registration.scope;
+      return cache.addAll([
+        base,
+        base + 'index.html',
+        base + 'css/style.css',
+        base + 'js/app.js',
+        base + 'manifest.json',
+        base + 'assets/icons/icon-192.png',
+        base + 'assets/icons/icon-512.png',
+      ]);
+    }).then(() => self.skipWaiting())
   );
 });
 
@@ -27,26 +30,23 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch: serve from cache first, fall back to network
+// Fetch: cache-first for GET, passthrough for POST
 self.addEventListener('fetch', event => {
-  // Skip non-GET requests (POST to Power Automate should go to network)
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
       if (cachedResponse) return cachedResponse;
       return fetch(event.request).then(networkResponse => {
-        // Cache new successful GET responses for app assets
         if (networkResponse.ok && event.request.url.startsWith(self.location.origin)) {
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return networkResponse;
       });
     }).catch(() => {
-      // Offline fallback for navigation requests
       if (event.request.mode === 'navigate') {
-        return caches.match('/index.html');
+        return caches.match(self.registration.scope + 'index.html');
       }
     })
   );
