@@ -1,4 +1,4 @@
-const CACHE_NAME = 'm3-safety-observer-v5';
+const CACHE_NAME = 'm3-safety-observer-v6';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
@@ -15,6 +15,7 @@ self.addEventListener('install', event => {
         base + 'css/style.css',
         base + 'js/app.js',
         base + 'manifest.json',
+        base + 'assets/nne-logo-white.png',
         base + 'assets/icons/icon-192.png',
         base + 'assets/icons/icon-512.png',
       ]);

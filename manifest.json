@@ -1,12 +1,12 @@
 {
-  "name": "M3 Safety Observer",
-  "short_name": "Safety Obs",
-  "description": "Report safety observations on the M3 construction site",
+  "name": "NNE Safety Observer",
+  "short_name": "NNE Safety",
+  "description": "Report safety observations on the NNE M3 construction site",
   "start_url": ".",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#1a1a2e",
-  "theme_color": "#e94560",
+  "background_color": "#070b1e",
+  "theme_color": "#151c42",
   "scope": ".",
   "icons": [
     {

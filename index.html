@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Safety Obs">
-  <meta name="theme-color" content="#e94560">
-  <title>M3 Safety Observer</title>
+  <meta name="apple-mobile-web-app-title" content="NNE Safety">
+  <meta name="theme-color" content="#151c42">
+  <title>NNE Safety Observer</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
   <link rel="stylesheet" href="css/style.css">
@@ -16,7 +16,11 @@
 
   <!-- ===== Header ===== -->
   <header class="app-header">
-    <h1>M3 Safety Observer</h1>
+    <div class="header-brand">
+      <img src="assets/nne-logo-white.png" alt="NNE" class="header-logo">
+      <span class="header-divider"></span>
+      <span class="header-title">Safety Observer</span>
+    </div>
     <div class="header-controls">
       <select id="langSelect" class="lang-select" aria-label="Language">
         <option value="en">EN</option>
@@ -226,7 +230,7 @@
         <button class="settings-btn-action" id="settingsForceSync" data-i18n="force_sync">Force Sync Now</button>
         <button class="settings-btn-action danger" id="settingsClearQueue" data-i18n="clear_queue">Clear Pending Queue</button>
       </div>
-      <p style="margin-top:24px;font-size:0.7rem;color:var(--text-muted);text-align:center;">M3 Safety Observer v1.0</p>
+      <p style="margin-top:24px;font-size:0.7rem;color:var(--text-muted);text-align:center;">NNE Safety Observer v1.1</p>
     </div>
   </div>
 
