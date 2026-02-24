@@ -759,10 +759,18 @@ async function init() {
 
   // Sync on visibility change (user switches back to app)
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && navigator.onLine) {
-      syncPending();
+    if (document.visibilityState === 'visible') {
+      updateStatus();
+      if (navigator.onLine) syncPending();
     }
   });
+
+  // Periodic sync retry every 15s while app is open (covers iOS limitation)
+  setInterval(() => {
+    if (navigator.onLine && document.visibilityState === 'visible') {
+      syncPending();
+    }
+  }, 15000);
 
   // Language selector
   document.getElementById('langSelect').addEventListener('change', (e) => {
