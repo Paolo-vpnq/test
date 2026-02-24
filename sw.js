@@ -1,4 +1,4 @@
-const CACHE_NAME = 'm3-safety-observer-v2';
+const CACHE_NAME = 'm3-safety-observer-v3';
 
 // Install: cache app shell
 self.addEventListener('install', event => {

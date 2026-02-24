@@ -99,6 +99,10 @@ const TRANSLATIONS = {
     synced_count: 'reports synced',
     no_endpoint: 'No endpoint configured. Report saved locally.',
     type_to_search: 'Type to search...',
+    scan_qr: 'Scan QR Code',
+    qr_hint: 'Point camera at a location QR code',
+    qr_no_camera: 'Camera access not available',
+    qr_found: 'Location set from QR code!',
   },
   da: {
     status_online: 'Online', status_offline: 'Offline — rapporter gemt lokalt',
@@ -127,6 +131,10 @@ const TRANSLATIONS = {
     synced_count: 'rapporter synkroniseret',
     no_endpoint: 'Ingen endpoint konfigureret. Rapport gemt lokalt.',
     type_to_search: 'Skriv for at søge...',
+    scan_qr: 'Scan QR-kode',
+    qr_hint: 'Peg kameraet mod en placeringskode',
+    qr_no_camera: 'Kameraadgang ikke tilgængelig',
+    qr_found: 'Placering sat fra QR-kode!',
   },
   de: {
     status_online: 'Online', status_offline: 'Offline — Berichte lokal gespeichert',
@@ -171,7 +179,7 @@ let currentLang = localStorage.getItem('appLang') || 'en';
 let currentBuilding = '';
 let currentLevel = '';
 let observationType = '';
-let photoData = '';
+let photosData = []; // Array of base64 strings for multiple photos
 let db = null;
 
 // ===== IndexedDB ==============================================
@@ -484,13 +492,151 @@ function parseUrlParams() {
   }
 }
 
+// ===== QR SCANNER =============================================
+let qrStream = null;
+let qrAnimFrame = null;
+
+async function openQrScanner() {
+  const overlay = document.getElementById('qrScannerOverlay');
+  const video = document.getElementById('qrVideo');
+
+  try {
+    qrStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' }
+    });
+    video.srcObject = qrStream;
+    overlay.classList.add('visible');
+    scanQrFrame();
+  } catch (err) {
+    console.error('Camera error:', err);
+    alert(t('qr_no_camera'));
+  }
+}
+
+function closeQrScanner() {
+  const overlay = document.getElementById('qrScannerOverlay');
+  const video = document.getElementById('qrVideo');
+
+  overlay.classList.remove('visible');
+
+  if (qrAnimFrame) {
+    cancelAnimationFrame(qrAnimFrame);
+    qrAnimFrame = null;
+  }
+
+  if (qrStream) {
+    qrStream.getTracks().forEach(track => track.stop());
+    qrStream = null;
+  }
+  video.srcObject = null;
+}
+
+function scanQrFrame() {
+  const video = document.getElementById('qrVideo');
+
+  if (!qrStream || video.readyState < 2) {
+    qrAnimFrame = requestAnimationFrame(scanQrFrame);
+    return;
+  }
+
+  // Try native BarcodeDetector first (iOS 16.4+, Chrome)
+  if ('BarcodeDetector' in window) {
+    const detector = new BarcodeDetector({ formats: ['qr_code'] });
+    detector.detect(video).then(barcodes => {
+      if (barcodes.length > 0) {
+        handleQrResult(barcodes[0].rawValue);
+        return;
+      }
+      qrAnimFrame = requestAnimationFrame(scanQrFrame);
+    }).catch(() => {
+      // Fall back to canvas scanning
+      scanWithCanvas(video);
+    });
+  } else {
+    scanWithCanvas(video);
+  }
+}
+
+function scanWithCanvas(video) {
+  // Canvas-based frame capture for jsQR fallback
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+  if (window.jsQR) {
+    const code = window.jsQR(imageData.data, canvas.width, canvas.height);
+    if (code) {
+      handleQrResult(code.data);
+      return;
+    }
+  }
+  qrAnimFrame = requestAnimationFrame(scanQrFrame);
+}
+
+function handleQrResult(rawValue) {
+  closeQrScanner();
+
+  // The QR could contain a full URL like https://example.com/test/?building=FAB1&level=L2
+  // or just params like building=FAB1&level=L2
+  let params;
+  try {
+    const url = new URL(rawValue);
+    params = url.searchParams;
+  } catch {
+    // Not a full URL — try parsing as query string
+    params = new URLSearchParams(rawValue.includes('?') ? rawValue.split('?')[1] : rawValue);
+  }
+
+  const building = params.get('building');
+  const level = params.get('level');
+
+  if (building) {
+    currentBuilding = building.toUpperCase();
+    document.getElementById('buildingValue').textContent = currentBuilding;
+    // Also set the dropdown
+    document.getElementById('buildingSelect').value = currentBuilding;
+    populateLevelSelect(currentBuilding);
+  }
+  if (level) {
+    currentLevel = level.toUpperCase();
+    document.getElementById('levelValue').textContent = currentLevel;
+    document.getElementById('levelSelect').value = currentLevel;
+  }
+
+  // Show manual section so user sees/can adjust the values
+  document.getElementById('locationManual').classList.remove('hidden');
+
+  // Brief visual feedback
+  if (building || level) {
+    const hint = document.querySelector('.qr-hint');
+    if (hint) hint.textContent = t('qr_found');
+  }
+}
+
+// Load jsQR fallback library if BarcodeDetector is not available
+function loadJsQrFallback() {
+  if ('BarcodeDetector' in window) return; // Not needed
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+  script.async = true;
+  document.head.appendChild(script);
+}
+
 // ===== PHOTO ==================================================
+const MAX_PHOTOS = 5;
+
 function handlePhoto(file) {
   if (!file) return;
+  if (photosData.length >= MAX_PHOTOS) {
+    alert('Maximum ' + MAX_PHOTOS + ' photos allowed.');
+    return;
+  }
 
   const reader = new FileReader();
   reader.onload = (e) => {
-    // Compress the image
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
@@ -508,14 +654,39 @@ function handlePhoto(file) {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, w, h);
 
-      photoData = canvas.toDataURL('image/jpeg', 0.7);
-
-      document.getElementById('photoImg').src = photoData;
-      document.getElementById('photoPreview').style.display = 'block';
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      photosData.push(dataUrl);
+      renderPhotoGrid();
     };
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
+}
+
+function renderPhotoGrid() {
+  const grid = document.getElementById('photoGrid');
+  grid.innerHTML = '';
+
+  photosData.forEach((data, index) => {
+    const item = document.createElement('div');
+    item.className = 'photo-grid-item';
+
+    const img = document.createElement('img');
+    img.src = data;
+    img.alt = 'Photo ' + (index + 1);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-photo-mini';
+    removeBtn.innerHTML = '&times;';
+    removeBtn.addEventListener('click', () => {
+      photosData.splice(index, 1);
+      renderPhotoGrid();
+    });
+
+    item.appendChild(img);
+    item.appendChild(removeBtn);
+    grid.appendChild(item);
+  });
 }
 
 // ===== FORM VALIDATION ========================================
@@ -557,7 +728,8 @@ async function submitObservation() {
     safetyCategory: document.getElementById('safetyCategory').value,
     subCategory: document.getElementById('subCategory').value || '',
     description: document.getElementById('description').value.trim(),
-    photo: photoData || '',
+    photo: photosData.length > 0 ? photosData[0] : '',
+    photos: photosData.length > 0 ? photosData : [],
     submittedLanguage: currentLang,
     status: 'pending', // Internal — not sent to endpoint
   };
@@ -638,15 +810,14 @@ function hideModal() {
 function resetForm() {
   // Keep identity fields (name, contractor, company) — they're saved
   observationType = '';
-  photoData = '';
+  photosData = [];
   document.getElementById('btnSafe').className = 'toggle-btn';
   document.getElementById('btnUnsafe').className = 'toggle-btn';
   document.getElementById('safetyCategory').value = '';
   document.getElementById('subCategory').value = '';
   document.getElementById('subCategoryGroup').classList.add('hidden');
   document.getElementById('description').value = '';
-  document.getElementById('photoImg').src = '';
-  document.getElementById('photoPreview').style.display = 'none';
+  document.getElementById('photoGrid').innerHTML = '';
   document.getElementById('cameraInput').value = '';
   document.getElementById('galleryInput').value = '';
 }
@@ -745,6 +916,9 @@ async function init() {
   // Install banner
   checkInstallBanner();
 
+  // Load jsQR fallback if needed
+  loadJsQrFallback();
+
   // Try sync on load
   syncPending();
 
@@ -825,14 +999,9 @@ async function init() {
     handlePhoto(e.target.files[0]);
   });
 
-  // Remove photo
-  document.getElementById('removePhoto').addEventListener('click', () => {
-    photoData = '';
-    document.getElementById('photoImg').src = '';
-    document.getElementById('photoPreview').style.display = 'none';
-    document.getElementById('cameraInput').value = '';
-    document.getElementById('galleryInput').value = '';
-  });
+  // Reset file inputs after each photo so the same file can be re-selected
+  document.getElementById('cameraInput').addEventListener('click', function() { this.value = ''; });
+  document.getElementById('galleryInput').addEventListener('click', function() { this.value = ''; });
 
   // Submit
   document.getElementById('submitBtn').addEventListener('click', submitObservation);
@@ -864,6 +1033,10 @@ async function init() {
     localStorage.setItem('installBannerDismissed', 'true');
     document.getElementById('installBanner').classList.remove('visible');
   });
+
+  // QR Scanner
+  document.getElementById('scanQrBtn').addEventListener('click', openQrScanner);
+  document.getElementById('qrCloseBtn').addEventListener('click', closeQrScanner);
 
   // Register service worker
   if ('serviceWorker' in navigator) {
