@@ -284,6 +284,7 @@ async function syncPending() {
         syncedCount++;
       } catch (err) {
         // Network error for this item — stop trying rest, will retry later
+        requestBackgroundSync(); // Queue a background sync for when connectivity returns
         break;
       }
     }
@@ -769,6 +770,8 @@ async function submitObservation() {
     }
   } else {
     showModal(CONFIG.ENDPOINT_URL ? 'queued' : 'no_endpoint');
+    // Request background sync so Android can send when back online (even if app closed)
+    requestBackgroundSync();
   }
 
   updatePendingBadge();
@@ -852,6 +855,7 @@ function saveSettings() {
   if (endpoint) {
     localStorage.setItem('powerAutomateUrl', endpoint);
     CONFIG.ENDPOINT_URL = endpoint;
+    sendEndpointToSW();
   }
 
   // Update main form with saved values
@@ -877,10 +881,36 @@ function checkInstallBanner() {
   }
 }
 
+// ===== BACKGROUND SYNC (Android) ==============================
+// Registers a one-shot sync so the service worker can send pending
+// observations when connectivity returns, even if the app isn't open.
+async function requestBackgroundSync() {
+  if ('serviceWorker' in navigator && 'SyncManager' in window) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.sync.register('sync-observations');
+    } catch (err) {
+      // Sync registration failed — app will still retry via periodic timer
+    }
+  }
+}
+
+// Send the current endpoint URL to the service worker so it can
+// perform background sync without access to localStorage.
+function sendEndpointToSW() {
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'SET_ENDPOINT',
+      url: CONFIG.ENDPOINT_URL,
+    });
+  }
+}
+
 // ===== GLOBAL HELPERS (for console access) ====================
 window.setPowerAutomateUrl = function(url) {
   localStorage.setItem('powerAutomateUrl', url);
   CONFIG.ENDPOINT_URL = url;
+  sendEndpointToSW();
   console.log('Power Automate URL set to:', url);
 };
 
@@ -1040,7 +1070,10 @@ async function init() {
 
   // Register service worker
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(err => {
+    navigator.serviceWorker.register('sw.js').then(() => {
+      // Once active, send endpoint URL so background sync can use it
+      navigator.serviceWorker.ready.then(() => sendEndpointToSW());
+    }).catch(err => {
       console.error('SW registration failed:', err);
     });
   }

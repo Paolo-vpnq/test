@@ -1,4 +1,6 @@
-const CACHE_NAME = 'm3-safety-observer-v3';
+const CACHE_NAME = 'm3-safety-observer-v4';
+const DB_NAME = 'm3-safety-observer';
+const STORE_NAME = 'observations';
 
 // Install: cache app shell
 self.addEventListener('install', event => {
@@ -50,4 +52,84 @@ self.addEventListener('fetch', event => {
       }
     })
   );
+});
+
+// ===== Background Sync (Android Chrome) ======================
+// When the browser regains connectivity, this event fires even if
+// the app tab is not open. It reads pending observations from
+// IndexedDB and sends them.
+
+self.addEventListener('sync', event => {
+  if (event.tag === 'sync-observations') {
+    event.waitUntil(syncAllPending());
+  }
+});
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onsuccess = (e) => resolve(e.target.result);
+    request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function getAllPending(db) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const request = tx.objectStore(STORE_NAME).getAll();
+    request.onsuccess = () => resolve(request.result.filter(o => o.status === 'pending'));
+    request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function deleteObservation(db, id) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(e.target.error);
+  });
+}
+
+async function syncAllPending() {
+  let db;
+  try {
+    db = await openDB();
+  } catch (err) {
+    return; // DB not available yet
+  }
+
+  // Read endpoint URL from a known cache or use a message channel.
+  // Service workers can't access localStorage, so we read the URL
+  // that the main app posts to us via message.
+  const endpointUrl = self._endpointUrl;
+  if (!endpointUrl) return;
+
+  const pending = await getAllPending(db);
+
+  for (const obs of pending) {
+    try {
+      const payload = { ...obs };
+      delete payload.status;
+
+      await fetch(endpointUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload),
+      });
+
+      await deleteObservation(db, obs.id);
+    } catch (err) {
+      // Network still down — sync will be retried by the browser
+      throw err;
+    }
+  }
+}
+
+// Listen for messages from the main app (endpoint URL updates)
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SET_ENDPOINT') {
+    self._endpointUrl = event.data.url;
+  }
 });
