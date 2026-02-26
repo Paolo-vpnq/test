@@ -1783,6 +1783,11 @@ async function init() {
       console.error('SW registration failed:', err);
     });
 
+    // Reload when a new SW takes control (works across all browsers)
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
+
     // Listen for messages from SW
     navigator.serviceWorker.addEventListener('message', event => {
       if (event.data && event.data.type === 'SYNC_COMPLETE') {
@@ -1795,6 +1800,19 @@ async function init() {
       }
     });
   }
+
+  // iOS PWA fix: when iOS restores a PWA from memory (no fresh load),
+  // DOMContentLoaded doesn't fire. These events catch that case.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(reg => reg.update().catch(() => {}));
+    }
+  });
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(reg => reg.update().catch(() => {}));
+    }
+  });
 
   // If there are already pending items and we have notification permission,
   // ensure the persistent notification is shown (keeps Chrome alive)
