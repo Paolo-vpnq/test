@@ -1,4 +1,4 @@
-const CACHE_NAME = 'm3-safety-observer-v9';
+const CACHE_NAME = 'm3-safety-observer-v10';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
@@ -62,7 +62,14 @@ self.addEventListener('fetch', event => {
 
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-observations') {
-    event.waitUntil(syncAllPending());
+    event.waitUntil(
+      // Only run background sync if the app is NOT open
+      // (if open, the foreground sync handles it — avoids duplicates)
+      self.clients.matchAll({ type: 'window' }).then(clients => {
+        if (clients.length > 0) return; // App is open, skip
+        return syncAllPending();
+      })
+    );
   }
 });
 
