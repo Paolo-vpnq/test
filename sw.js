@@ -1,4 +1,4 @@
-const CACHE_NAME = 'm3-safety-observer-v12';
+const CACHE_NAME = 'm3-safety-observer-v13';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
@@ -343,5 +343,9 @@ self.addEventListener('message', event => {
 
   if (event.data.type === 'CLEAR_PENDING_NOTIFICATION') {
     clearPendingNotif();
+  }
+
+  if (event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
   }
 });

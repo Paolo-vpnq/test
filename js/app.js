@@ -1755,9 +1755,28 @@ async function init() {
   document.getElementById('scanQrBtn').addEventListener('click', openQrScanner);
   document.getElementById('qrCloseBtn').addEventListener('click', closeQrScanner);
 
-  // Register service worker
+  // Register service worker + force update check on every load
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(() => {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      // Force check for updated SW on every app open
+      reg.update().catch(() => {});
+
+      // When a new SW is waiting, make it activate immediately
+      if (reg.waiting) {
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'activated') {
+              // New SW is active — reload to get fresh cached assets
+              window.location.reload();
+            }
+          });
+        }
+      });
+
       // Once active, send endpoint URL so background sync can use it
       navigator.serviceWorker.ready.then(() => {
         sendEndpointToSW();
