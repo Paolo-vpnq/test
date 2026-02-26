@@ -1,4 +1,4 @@
-const CACHE_NAME = 'm3-safety-observer-v11';
+const CACHE_NAME = 'm3-safety-observer-v12';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
@@ -155,6 +155,54 @@ function deleteObservation(db, id) {
   });
 }
 
+// Claim an observation (mark as 'sending') so no other process sends it.
+function claimObservation(db, id) {
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const getReq = store.get(id);
+      getReq.onsuccess = () => {
+        const obs = getReq.result;
+        if (!obs || obs.status !== 'pending') {
+          resolve(false);
+          return;
+        }
+        obs.status = 'sending';
+        store.put(obs);
+        tx.oncomplete = () => resolve(true);
+      };
+      getReq.onerror = () => resolve(false);
+      tx.onerror = () => resolve(false);
+    } catch (e) {
+      resolve(false);
+    }
+  });
+}
+
+// Reset a 'sending' observation back to 'pending' on failure.
+function unclaimObservation(db, id) {
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const getReq = store.get(id);
+      getReq.onsuccess = () => {
+        const obs = getReq.result;
+        if (obs && obs.status === 'sending') {
+          obs.status = 'pending';
+          store.put(obs);
+        }
+        tx.oncomplete = () => resolve();
+      };
+      getReq.onerror = () => resolve();
+      tx.onerror = () => resolve();
+    } catch (e) {
+      resolve();
+    }
+  });
+}
+
 // Core POST: try cors first, fall back to no-cors
 async function postToEndpoint(url, payload) {
   try {
@@ -249,6 +297,10 @@ async function syncAllPending() {
   let syncedCount = 0;
 
   for (const obs of pending) {
+    // Claim this observation so no other process (app foreground, timer) sends it
+    const claimed = await claimObservation(db, obs.id);
+    if (!claimed) continue; // Already being sent by another process
+
     try {
       const payload = { ...obs };
       delete payload.status;
@@ -257,7 +309,8 @@ async function syncAllPending() {
       await deleteObservation(db, obs.id);
       syncedCount++;
     } catch (err) {
-      // Network still down — show/update pending notification and throw so browser retries
+      // Network still down — unclaim so it can be retried
+      await unclaimObservation(db, obs.id);
       await showPendingNotif(pending.length - syncedCount);
       throw err;
     }

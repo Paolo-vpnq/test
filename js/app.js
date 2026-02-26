@@ -674,6 +674,47 @@ function deleteObservation(id) {
   });
 }
 
+// Mark an observation as 'sending' so no other process picks it up.
+// Returns true if successfully claimed, false if already claimed or gone.
+function claimObservation(id) {
+  return new Promise((resolve) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const getReq = store.get(id);
+    getReq.onsuccess = () => {
+      const obs = getReq.result;
+      if (!obs || obs.status !== 'pending') {
+        resolve(false); // Already claimed or deleted
+        return;
+      }
+      obs.status = 'sending';
+      store.put(obs);
+      tx.oncomplete = () => resolve(true);
+    };
+    getReq.onerror = () => resolve(false);
+    tx.onerror = () => resolve(false);
+  });
+}
+
+// Reset a 'sending' observation back to 'pending' (e.g., on network failure).
+function unclaimObservation(id) {
+  return new Promise((resolve) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const getReq = store.get(id);
+    getReq.onsuccess = () => {
+      const obs = getReq.result;
+      if (obs && obs.status === 'sending') {
+        obs.status = 'pending';
+        store.put(obs);
+      }
+      tx.oncomplete = () => resolve();
+    };
+    getReq.onerror = () => resolve();
+    tx.onerror = () => resolve();
+  });
+}
+
 function clearAllObservations() {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
@@ -751,6 +792,10 @@ async function syncPending() {
     let lastError = '';
 
     for (const obs of pending) {
+      // Claim this observation so no other process (SW, timer) sends it
+      const claimed = await claimObservation(obs.id);
+      if (!claimed) continue; // Already being sent by another process
+
       try {
         const payload = { ...obs };
         delete payload.status; // Don't send internal status field
@@ -759,8 +804,9 @@ async function syncPending() {
         await deleteObservation(obs.id);
         syncedCount++;
       } catch (err) {
+        // Network error — unclaim so it can be retried
+        await unclaimObservation(obs.id);
         lastError = err.message || 'Network error';
-        // Network error — queue background sync and stop
         requestBackgroundSync();
         break;
       }
@@ -1263,39 +1309,28 @@ async function submitObservation() {
     return;
   }
 
-  // Try to send immediately if online
+  // ALL sending goes through syncPending() to avoid duplicates.
+  // Never send directly from here — the sync engine has locking.
   if (navigator.onLine && CONFIG.ENDPOINT_URL) {
-    try {
-      const payload = { ...observation };
-      delete payload.status;
-
-      // Use no-cors for compatibility with webhook.site and similar test endpoints.
-      await fetch(CONFIG.ENDPOINT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(payload),
-      });
-
-      // If fetch didn't throw, the request was sent
-      await deleteObservation(observation.id);
-      showModal('success');
-    } catch (err) {
-      showModal('queued');
-    }
+    // Online: trigger sync immediately, show success/queued based on result
+    showModal('queued'); // Shown briefly while sync runs
+    syncPending().then(async () => {
+      const remaining = await getAllPending();
+      const wasSent = !remaining.find(o => o.id === observation.id);
+      if (wasSent) {
+        hideModal();
+        showModal('success');
+      }
+    }).catch(() => {});
   } else {
     showModal(CONFIG.ENDPOINT_URL ? 'queued' : 'no_endpoint');
     // Request background sync so Android can send when back online (even if app closed)
     requestBackgroundSync();
 
-    // Ask for notification permission (first offline submit = best context for asking)
-    // Then show a persistent notification — this keeps Chrome alive so sync fires
-    requestNotificationPermission().then(async (granted) => {
-      if (granted) {
-        const pending = await getAllPending();
-        showPendingNotification(pending.length);
-      }
-    });
+    // Show persistent notification — keeps Chrome alive so background sync fires
+    if ('Notification' in window && Notification.permission === 'granted') {
+      getAllPending().then(pending => showPendingNotification(pending.length)).catch(() => {});
+    }
   }
 
   updatePendingBadge();
@@ -1580,6 +1615,10 @@ async function init() {
 
   // Install banner
   checkInstallBanner();
+
+  // Request notification permission early — needed for background sync keep-alive.
+  // On Android PWA, this shows a one-time prompt.
+  requestNotificationPermission();
 
   // Load jsQR fallback if needed
   loadJsQrFallback();
