@@ -1,4 +1,4 @@
-const CACHE_NAME = 'm3-safety-observer-v16';
+const CACHE_NAME = 'm3-safety-observer-v17';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
@@ -235,9 +235,11 @@ async function showPendingNotif(count) {
       tag: PENDING_NOTIFICATION_TAG,
       renotify: false,
       requireInteraction: true, // Keeps notification visible (and Chrome alive)
-      silent: true,
+      // No silent: true — iOS suppresses silent notifications entirely
     });
   } catch (e) {}
+  // Update app icon badge with pending count
+  try { navigator.setAppBadge(count); } catch (e) {}
 }
 
 async function showSyncSuccessNotif(count) {
@@ -253,9 +255,10 @@ async function showSyncSuccessNotif(count) {
       tag: 'sync-success',
       renotify: true,
       requireInteraction: false,
-      silent: false,
     });
   } catch (e) {}
+  // Clear app icon badge — all synced
+  try { navigator.clearAppBadge(); } catch (e) {}
 }
 
 async function clearPendingNotif() {
@@ -263,6 +266,7 @@ async function clearPendingNotif() {
     const notifications = await self.registration.getNotifications({ tag: PENDING_NOTIFICATION_TAG });
     notifications.forEach(n => n.close());
   } catch (e) {}
+  try { navigator.clearAppBadge(); } catch (e) {}
 }
 
 // ===== Core Sync Logic =======================================

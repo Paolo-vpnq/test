@@ -872,8 +872,11 @@ async function updatePendingBadge() {
     if (pending.length > 0) {
       count.textContent = pending.length;
       badge.classList.add('visible');
+      // Set app icon badge (home screen number — works on iOS 16.4+ and Android)
+      if ('setAppBadge' in navigator) navigator.setAppBadge(pending.length).catch(() => {});
     } else {
       badge.classList.remove('visible');
+      if ('clearAppBadge' in navigator) navigator.clearAppBadge().catch(() => {});
     }
   } catch (e) {
     // Silently fail
