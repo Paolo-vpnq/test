@@ -768,6 +768,14 @@ async function syncPending() {
 
     if (syncedCount > 0) {
       lastSyncResult = syncedCount + ' observation(s) synced';
+      // Clear the persistent "pending" notification now that items are synced
+      const remaining = await getAllPending();
+      if (remaining.length === 0) {
+        clearPendingNotification();
+      } else {
+        // Update notification with remaining count
+        showPendingNotification(remaining.length);
+      }
     } else if (lastError) {
       lastSyncResult = 'Sync failed: ' + lastError;
     }
@@ -1279,6 +1287,15 @@ async function submitObservation() {
     showModal(CONFIG.ENDPOINT_URL ? 'queued' : 'no_endpoint');
     // Request background sync so Android can send when back online (even if app closed)
     requestBackgroundSync();
+
+    // Ask for notification permission (first offline submit = best context for asking)
+    // Then show a persistent notification — this keeps Chrome alive so sync fires
+    requestNotificationPermission().then(async (granted) => {
+      if (granted) {
+        const pending = await getAllPending();
+        showPendingNotification(pending.length);
+      }
+    });
   }
 
   updatePendingBadge();
@@ -1412,6 +1429,59 @@ async function requestBackgroundSync() {
       // Sync registration failed — app will still retry via periodic timer
     }
   }
+}
+
+// ===== NOTIFICATIONS (keep-alive for background sync) =========
+// On Android, a visible notification keeps Chrome's SW process alive,
+// which means Background Sync actually fires when connectivity returns.
+
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) return false;
+  if (Notification.permission === 'granted') return true;
+  if (Notification.permission === 'denied') return false;
+  const result = await Notification.requestPermission();
+  return result === 'granted';
+}
+
+// Tell the SW to show a persistent "pending observations" notification.
+// This is the key trick: the notification keeps Chrome alive in background.
+async function showPendingNotification(count) {
+  if (!('serviceWorker' in navigator)) return;
+  if (Notification.permission !== 'granted') return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    reg.active.postMessage({
+      type: 'SHOW_PENDING_NOTIFICATION',
+      count: count,
+    });
+  } catch (e) {}
+}
+
+// Tell the SW to clear the pending notification after successful sync.
+async function clearPendingNotification() {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    reg.active.postMessage({ type: 'CLEAR_PENDING_NOTIFICATION' });
+  } catch (e) {}
+}
+
+// ===== PERIODIC BACKGROUND SYNC ===============================
+// Wakes the SW periodically (even when app is closed) to check for
+// pending items. Minimum interval is browser-controlled (~12h).
+async function registerPeriodicSync() {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    if ('periodicSync' in reg) {
+      const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
+      if (status.state === 'granted') {
+        await reg.periodicSync.register('periodic-sync-observations', {
+          minInterval: 60 * 60 * 1000, // request every 1 hour (browser may enforce higher)
+        });
+      }
+    }
+  } catch (e) {}
 }
 
 // Send the current endpoint URL to the service worker so it can
@@ -1650,19 +1720,36 @@ async function init() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(() => {
       // Once active, send endpoint URL so background sync can use it
-      navigator.serviceWorker.ready.then(() => sendEndpointToSW());
+      navigator.serviceWorker.ready.then(() => {
+        sendEndpointToSW();
+        // Register periodic background sync (wakes SW even when app is closed)
+        registerPeriodicSync();
+      });
     }).catch(err => {
       console.error('SW registration failed:', err);
     });
 
-    // Listen for background sync completion from SW
+    // Listen for messages from SW
     navigator.serviceWorker.addEventListener('message', event => {
       if (event.data && event.data.type === 'SYNC_COMPLETE') {
         updatePendingBadge();
         updateStatus();
+        // Clear notification if no more pending items
+        getAllPending().then(pending => {
+          if (pending.length === 0) clearPendingNotification();
+        }).catch(() => {});
       }
     });
   }
+
+  // If there are already pending items and we have notification permission,
+  // ensure the persistent notification is shown (keeps Chrome alive)
+  try {
+    const pending = await getAllPending();
+    if (pending.length > 0 && 'Notification' in window && Notification.permission === 'granted') {
+      showPendingNotification(pending.length);
+    }
+  } catch (e) {}
 }
 
 // Boot

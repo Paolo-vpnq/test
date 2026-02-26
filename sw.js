@@ -1,7 +1,8 @@
-const CACHE_NAME = 'm3-safety-observer-v10';
+const CACHE_NAME = 'm3-safety-observer-v11';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
+const PENDING_NOTIFICATION_TAG = 'pending-observations';
 
 // Install: cache app shell
 self.addEventListener('install', event => {
@@ -58,19 +59,42 @@ self.addEventListener('fetch', event => {
 
 // ===== Background Sync (Android Chrome) ======================
 // When the browser regains connectivity, this event fires even if
-// the app tab is not open.
+// the app tab is not open. We ALWAYS try to sync here — the app's
+// foreground sync uses isSyncing lock to avoid collisions.
 
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-observations') {
-    event.waitUntil(
-      // Only run background sync if the app is NOT open
-      // (if open, the foreground sync handles it — avoids duplicates)
-      self.clients.matchAll({ type: 'window' }).then(clients => {
-        if (clients.length > 0) return; // App is open, skip
-        return syncAllPending();
-      })
-    );
+    event.waitUntil(syncAllPending());
   }
+});
+
+// ===== Periodic Background Sync ==============================
+// Wakes the SW periodically even when the app is closed.
+// The app registers this with a minInterval; the browser controls actual timing.
+
+self.addEventListener('periodicsync', event => {
+  if (event.tag === 'periodic-sync-observations') {
+    event.waitUntil(syncAllPending());
+  }
+});
+
+// ===== Notification Click ====================================
+// When user taps the notification, open/focus the app
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window' }).then(clients => {
+      // If app is already open, focus it
+      for (const client of clients) {
+        if (client.url.includes(self.registration.scope) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Otherwise open a new window
+      return self.clients.openWindow(self.registration.scope);
+    })
+  );
 });
 
 // ===== IndexedDB helpers for SW context =======================
@@ -153,6 +177,49 @@ async function postToEndpoint(url, payload) {
   });
 }
 
+// ===== Notification Helpers ==================================
+
+async function showPendingNotif(count) {
+  try {
+    await self.registration.showNotification('NNE Safety Observer', {
+      body: count + ' observation(s) pending — will upload when online',
+      icon: self.registration.scope + 'assets/icons/icon-192.png',
+      badge: self.registration.scope + 'assets/icons/icon-192.png',
+      tag: PENDING_NOTIFICATION_TAG,
+      renotify: false,
+      requireInteraction: true, // Keeps notification visible (and Chrome alive)
+      silent: true,
+    });
+  } catch (e) {}
+}
+
+async function showSyncSuccessNotif(count) {
+  try {
+    // Close the pending notification first
+    const notifications = await self.registration.getNotifications({ tag: PENDING_NOTIFICATION_TAG });
+    notifications.forEach(n => n.close());
+
+    await self.registration.showNotification('NNE Safety Observer', {
+      body: count + ' observation(s) uploaded successfully',
+      icon: self.registration.scope + 'assets/icons/icon-192.png',
+      badge: self.registration.scope + 'assets/icons/icon-192.png',
+      tag: 'sync-success',
+      renotify: true,
+      requireInteraction: false,
+      silent: false,
+    });
+  } catch (e) {}
+}
+
+async function clearPendingNotif() {
+  try {
+    const notifications = await self.registration.getNotifications({ tag: PENDING_NOTIFICATION_TAG });
+    notifications.forEach(n => n.close());
+  } catch (e) {}
+}
+
+// ===== Core Sync Logic =======================================
+
 async function syncAllPending() {
   let db;
   try {
@@ -173,7 +240,13 @@ async function syncAllPending() {
   }
 
   const pending = await getAllPending(db);
-  if (pending.length === 0) return;
+  if (pending.length === 0) {
+    // No pending items — clear any stale notification
+    await clearPendingNotif();
+    return;
+  }
+
+  let syncedCount = 0;
 
   for (const obs of pending) {
     try {
@@ -182,22 +255,40 @@ async function syncAllPending() {
 
       await postToEndpoint(endpointUrl, JSON.stringify(payload));
       await deleteObservation(db, obs.id);
+      syncedCount++;
     } catch (err) {
-      // Network still down — throw so browser retries later
+      // Network still down — show/update pending notification and throw so browser retries
+      await showPendingNotif(pending.length - syncedCount);
       throw err;
     }
+  }
+
+  // All synced successfully
+  if (syncedCount > 0) {
+    // Show success notification (replaces the pending one)
+    await showSyncSuccessNotif(syncedCount);
   }
 
   // Notify open tabs that sync completed
   const clients = await self.clients.matchAll();
   clients.forEach(client => {
-    client.postMessage({ type: 'SYNC_COMPLETE', count: pending.length });
+    client.postMessage({ type: 'SYNC_COMPLETE', count: syncedCount });
   });
 }
 
 // Listen for messages from the main app
 self.addEventListener('message', event => {
-  if (event.data && event.data.type === 'SET_ENDPOINT') {
+  if (!event.data) return;
+
+  if (event.data.type === 'SET_ENDPOINT') {
     self._endpointUrl = event.data.url;
+  }
+
+  if (event.data.type === 'SHOW_PENDING_NOTIFICATION') {
+    showPendingNotif(event.data.count);
+  }
+
+  if (event.data.type === 'CLEAR_PENDING_NOTIFICATION') {
+    clearPendingNotif();
   }
 });
