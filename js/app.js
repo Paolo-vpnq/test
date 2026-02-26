@@ -1352,12 +1352,19 @@ async function requestBackgroundSync() {
 // Send the current endpoint URL to the service worker so it can
 // perform background sync without access to localStorage.
 function sendEndpointToSW() {
-  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({
-      type: 'SET_ENDPOINT',
-      url: CONFIG.ENDPOINT_URL,
-    });
+  if (!('serviceWorker' in navigator)) return;
+  const msg = { type: 'SET_ENDPOINT', url: CONFIG.ENDPOINT_URL };
+
+  // Try controller first (fastest path)
+  if (navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage(msg);
+    return;
   }
+
+  // Fallback: get active SW from registration (works after skipWaiting)
+  navigator.serviceWorker.ready.then(reg => {
+    if (reg.active) reg.active.postMessage(msg);
+  }).catch(() => {});
 }
 
 // ===== GLOBAL HELPERS (for console access) ====================
@@ -1384,6 +1391,12 @@ async function init() {
     const savedEndpoint = await getSetting('powerAutomateUrl');
     if (savedEndpoint) CONFIG.ENDPOINT_URL = savedEndpoint;
   } catch (e) {}
+
+  // Always persist the endpoint URL to IndexedDB so the SW can read it
+  // during background sync (SW can't access localStorage or CONFIG)
+  if (CONFIG.ENDPOINT_URL) {
+    saveSetting('powerAutomateUrl', CONFIG.ENDPOINT_URL).catch(() => {});
+  }
 
   // Parse QR URL params
   parseUrlParams();
@@ -1445,6 +1458,8 @@ async function init() {
   window.addEventListener('online', () => {
     updateStatus();
     syncPending();
+    // Retry after 2s — network is often not truly ready when event fires
+    setTimeout(() => syncPending(), 2000);
   });
   window.addEventListener('offline', () => updateStatus());
 
