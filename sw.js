@@ -1,4 +1,4 @@
-const CACHE_NAME = 'm3-safety-observer-v13';
+const CACHE_NAME = 'm3-safety-observer-v14';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
@@ -93,6 +93,17 @@ self.addEventListener('notificationclick', event => {
       }
       // Otherwise open a new window
       return self.clients.openWindow(self.registration.scope);
+    }).then(() => {
+      // Re-show notification after a delay if still offline with pending items
+      return new Promise(resolve => setTimeout(resolve, 3000));
+    }).then(async () => {
+      try {
+        const db = await openDB();
+        const pending = await getAllPending(db);
+        if (pending.length > 0) {
+          await showPendingNotif(pending.length);
+        }
+      } catch (e) {}
     })
   );
 });
@@ -203,20 +214,8 @@ function unclaimObservation(db, id) {
   });
 }
 
-// Core POST: try cors first, fall back to no-cors
+// Core POST: no-cors only to avoid double-send from CORS-then-fallback.
 async function postToEndpoint(url, payload) {
-  try {
-    await fetch(url, {
-      method: 'POST',
-      mode: 'cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: payload,
-    });
-    return;
-  } catch (e) {
-    // CORS blocked — try no-cors
-  }
-
   await fetch(url, {
     method: 'POST',
     mode: 'no-cors',

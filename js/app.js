@@ -736,30 +736,17 @@ function uuid() {
 let isSyncing = false;
 let lastSyncResult = ''; // For debug display in settings
 
-// Core POST function: tries cors first (verifiable), falls back to no-cors.
+// Core POST function: uses no-cors to avoid CORS-then-fallback double-send.
+// no-cors gives an opaque response (can't read status), but the data IS sent.
 async function postObservation(url, payload) {
-  // Attempt 1: cors mode — we can read the response status
-  try {
-    const resp = await fetch(url, {
-      method: 'POST',
-      mode: 'cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload),
-    });
-    return { ok: true, status: resp.status, verified: true };
-  } catch (corsErr) {
-    // CORS blocked — fall back to no-cors (opaque response, can't verify)
-  }
-
-  // Attempt 2: no-cors mode — request is sent but response is opaque
-  const resp = await fetch(url, {
+  await fetch(url, {
     method: 'POST',
     mode: 'no-cors',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(payload),
   });
   // If we get here without throwing, the network request was sent
-  return { ok: true, status: 0, verified: false };
+  return { ok: true };
 }
 
 async function syncPending() {
@@ -1652,7 +1639,16 @@ async function init() {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       updateStatus();
-      if (navigator.onLine) syncPending();
+      if (navigator.onLine) {
+        syncPending();
+      } else {
+        // Still offline — re-show notification to keep Chrome alive
+        getAllPending().then(pending => {
+          if (pending.length > 0 && 'Notification' in window && Notification.permission === 'granted') {
+            showPendingNotification(pending.length);
+          }
+        }).catch(() => {});
+      }
     }
   });
 
