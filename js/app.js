@@ -1263,6 +1263,10 @@ async function submitObservation() {
     return;
   }
 
+  // Request notification permission on first submit (user gesture required for iOS).
+  // One-time prompt — subsequent calls are instant if already granted/denied.
+  requestNotificationPermission();
+
   const building = currentBuilding || document.getElementById('buildingSelect').value;
   const level = currentLevel || document.getElementById('levelSelect').value;
 
@@ -1602,10 +1606,6 @@ async function init() {
 
   // Install banner
   checkInstallBanner();
-
-  // Request notification permission early — needed for background sync keep-alive.
-  // On Android PWA, this shows a one-time prompt.
-  requestNotificationPermission();
 
   // Load jsQR fallback if needed
   loadJsQrFallback();
