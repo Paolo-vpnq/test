@@ -693,54 +693,119 @@ function uuid() {
 
 // ===== SYNC ENGINE ============================================
 let isSyncing = false;
+let lastSyncResult = ''; // For debug display in settings
+
+// Core POST function: tries cors first (verifiable), falls back to no-cors.
+async function postObservation(url, payload) {
+  // Attempt 1: cors mode — we can read the response status
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload),
+    });
+    return { ok: true, status: resp.status, verified: true };
+  } catch (corsErr) {
+    // CORS blocked — fall back to no-cors (opaque response, can't verify)
+  }
+
+  // Attempt 2: no-cors mode — request is sent but response is opaque
+  const resp = await fetch(url, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload),
+  });
+  // If we get here without throwing, the network request was sent
+  return { ok: true, status: 0, verified: false };
+}
 
 async function syncPending() {
   if (isSyncing) return;
   if (!navigator.onLine) return;
 
   const url = CONFIG.ENDPOINT_URL;
-  if (!url) return;
+  if (!url) {
+    lastSyncResult = 'No endpoint URL configured';
+    return;
+  }
 
   isSyncing = true;
-  setStatus('syncing');
+
+  try {
+    setStatus('syncing');
+  } catch (e) {
+    // DOM not ready — continue sync anyway
+  }
 
   try {
     const pending = await getAllPending();
+
+    if (pending.length === 0) {
+      lastSyncResult = 'No pending observations';
+      return; // finally block still runs
+    }
+
     let syncedCount = 0;
+    let lastError = '';
 
     for (const obs of pending) {
       try {
         const payload = { ...obs };
         delete payload.status; // Don't send internal status field
 
-        // Use no-cors mode for compatibility with webhook.site and similar test endpoints.
-        // With no-cors we can't read the response, so a successful fetch = sent.
-        await fetch(url, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify(payload),
-        });
-
-        // If fetch didn't throw, the request was sent
+        const result = await postObservation(url, payload);
         await deleteObservation(obs.id);
         syncedCount++;
       } catch (err) {
-        // Network error for this item — stop trying rest, will retry later
-        requestBackgroundSync(); // Queue a background sync for when connectivity returns
+        lastError = err.message || 'Network error';
+        // Network error — queue background sync and stop
+        requestBackgroundSync();
         break;
       }
     }
 
     if (syncedCount > 0) {
-      console.log(`Synced ${syncedCount} observations`);
+      lastSyncResult = syncedCount + ' observation(s) synced';
+    } else if (lastError) {
+      lastSyncResult = 'Sync failed: ' + lastError;
     }
   } catch (err) {
-    console.error('Sync error:', err);
+    lastSyncResult = 'Sync error: ' + (err.message || err);
   } finally {
     isSyncing = false;
-    updateStatus();
-    updatePendingBadge();
+    try {
+      updateStatus();
+      updatePendingBadge();
+    } catch (e) {}
+  }
+}
+
+// Force sync with user-visible alert showing results
+async function forceSyncWithFeedback() {
+  if (!navigator.onLine) {
+    alert('You are offline. Sync will happen when you are back online.');
+    return;
+  }
+
+  const pending = await getAllPending();
+  if (pending.length === 0) {
+    alert('No pending observations to sync.');
+    return;
+  }
+
+  alert('Syncing ' + pending.length + ' observation(s)...\nEndpoint: ' + (CONFIG.ENDPOINT_URL || 'NOT SET'));
+
+  // Reset sync lock in case it's stuck
+  isSyncing = false;
+  await syncPending();
+
+  const remaining = await getAllPending();
+  if (remaining.length === 0) {
+    alert('Sync complete! All observations sent.\n\nCheck webhook.site to verify.');
+  } else {
+    alert('Sync result: ' + lastSyncResult + '\n\n' + remaining.length + ' observation(s) still pending.');
   }
 }
 
@@ -1454,14 +1519,25 @@ async function init() {
 
   // ===== EVENT LISTENERS =====================================
 
-  // Online/offline
+  // Online/offline — multiple triggers for reliability on mobile
   window.addEventListener('online', () => {
     updateStatus();
+    // Staggered retries: network often not truly ready when event fires
     syncPending();
-    // Retry after 2s — network is often not truly ready when event fires
-    setTimeout(() => syncPending(), 2000);
+    setTimeout(() => syncPending(), 1500);
+    setTimeout(() => syncPending(), 5000);
   });
   window.addEventListener('offline', () => updateStatus());
+
+  // Network change event (more reliable on mobile than online/offline)
+  if ('connection' in navigator) {
+    navigator.connection.addEventListener('change', () => {
+      updateStatus();
+      if (navigator.onLine) {
+        setTimeout(() => syncPending(), 1000);
+      }
+    });
+  }
 
   // Sync on visibility change (user switches back to app)
   document.addEventListener('visibilitychange', () => {
@@ -1550,7 +1626,7 @@ async function init() {
   document.getElementById('settingsSave').addEventListener('click', saveSettings);
 
   document.getElementById('settingsForceSync').addEventListener('click', () => {
-    syncPending();
+    forceSyncWithFeedback();
   });
 
   document.getElementById('settingsClearQueue').addEventListener('click', async () => {
@@ -1577,6 +1653,14 @@ async function init() {
       navigator.serviceWorker.ready.then(() => sendEndpointToSW());
     }).catch(err => {
       console.error('SW registration failed:', err);
+    });
+
+    // Listen for background sync completion from SW
+    navigator.serviceWorker.addEventListener('message', event => {
+      if (event.data && event.data.type === 'SYNC_COMPLETE') {
+        updatePendingBadge();
+        updateStatus();
+      }
     });
   }
 }

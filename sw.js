@@ -1,4 +1,4 @@
-const CACHE_NAME = 'm3-safety-observer-v8';
+const CACHE_NAME = 'm3-safety-observer-v9';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
@@ -58,14 +58,15 @@ self.addEventListener('fetch', event => {
 
 // ===== Background Sync (Android Chrome) ======================
 // When the browser regains connectivity, this event fires even if
-// the app tab is not open. It reads pending observations from
-// IndexedDB and sends them.
+// the app tab is not open.
 
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-observations') {
     event.waitUntil(syncAllPending());
   }
 });
+
+// ===== IndexedDB helpers for SW context =======================
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -85,29 +86,63 @@ function openDB() {
 }
 
 function getSettingFromDB(db, key) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(SETTINGS_STORE, 'readonly');
-    const request = tx.objectStore(SETTINGS_STORE).get(key);
-    request.onsuccess = () => resolve(request.result ? request.result.value : null);
-    request.onerror = () => resolve(null);
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(SETTINGS_STORE, 'readonly');
+      const request = tx.objectStore(SETTINGS_STORE).get(key);
+      request.onsuccess = () => resolve(request.result ? request.result.value : null);
+      request.onerror = () => resolve(null);
+    } catch (e) {
+      resolve(null);
+    }
   });
 }
 
 function getAllPending(db) {
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const request = tx.objectStore(STORE_NAME).getAll();
-    request.onsuccess = () => resolve(request.result.filter(o => o.status === 'pending'));
-    request.onerror = (e) => reject(e.target.error);
+    try {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const request = tx.objectStore(STORE_NAME).getAll();
+      request.onsuccess = () => resolve(request.result.filter(o => o.status === 'pending'));
+      request.onerror = (e) => reject(e.target.error);
+    } catch (e) {
+      resolve([]);
+    }
   });
 }
 
 function deleteObservation(db, id) {
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    tx.objectStore(STORE_NAME).delete(id);
-    tx.oncomplete = () => resolve();
-    tx.onerror = (e) => reject(e.target.error);
+    try {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).delete(id);
+      tx.oncomplete = () => resolve();
+      tx.onerror = (e) => reject(e.target.error);
+    } catch (e) {
+      resolve(); // Don't block sync on delete failure
+    }
+  });
+}
+
+// Core POST: try cors first, fall back to no-cors
+async function postToEndpoint(url, payload) {
+  try {
+    await fetch(url, {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: payload,
+    });
+    return;
+  } catch (e) {
+    // CORS blocked — try no-cors
+  }
+
+  await fetch(url, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: payload,
   });
 }
 
@@ -116,39 +151,44 @@ async function syncAllPending() {
   try {
     db = await openDB();
   } catch (err) {
-    return; // DB not available yet
+    // DB not available — rethrow so browser retries sync
+    throw new Error('SW sync: IndexedDB not available');
   }
 
-  // Try postMessage value first, then fall back to IndexedDB setting
+  // Get endpoint URL: postMessage value → IndexedDB → hardcoded fallback
   let endpointUrl = self._endpointUrl;
   if (!endpointUrl) {
     endpointUrl = await getSettingFromDB(db, 'powerAutomateUrl');
   }
-  if (!endpointUrl) return;
+  if (!endpointUrl) {
+    // Last resort: use hardcoded test endpoint
+    endpointUrl = 'https://webhook.site/6eebf958-ce28-4bcc-879a-ac81deddb63b';
+  }
 
   const pending = await getAllPending(db);
+  if (pending.length === 0) return;
 
   for (const obs of pending) {
     try {
       const payload = { ...obs };
       delete payload.status;
 
-      await fetch(endpointUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(payload),
-      });
-
+      await postToEndpoint(endpointUrl, JSON.stringify(payload));
       await deleteObservation(db, obs.id);
     } catch (err) {
-      // Network still down — sync will be retried by the browser
+      // Network still down — throw so browser retries later
       throw err;
     }
   }
+
+  // Notify open tabs that sync completed
+  const clients = await self.clients.matchAll();
+  clients.forEach(client => {
+    client.postMessage({ type: 'SYNC_COMPLETE', count: pending.length });
+  });
 }
 
-// Listen for messages from the main app (endpoint URL updates)
+// Listen for messages from the main app
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SET_ENDPOINT') {
     self._endpointUrl = event.data.url;
