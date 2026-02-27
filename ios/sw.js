@@ -1,4 +1,4 @@
-const CACHE_NAME = 'm3-safety-observer-ios-v1';
+const CACHE_NAME = 'm3-safety-observer-ios-v2';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
@@ -329,24 +329,6 @@ async function syncAllPending() {
   });
 }
 
-// ===== Connectivity Polling ===================================
-// Instead of relying on Chrome's sync event (unreliable on newer versions),
-// actively poll for connectivity while the notification keeps Chrome alive.
-async function pollAndSync() {
-  for (let i = 0; i < 600; i++) { // Poll for ~50 minutes (5s × 600)
-    await new Promise(r => setTimeout(r, 5000));
-    try {
-      const db = await openDB();
-      const pending = await getAllPending(db);
-      if (pending.length === 0) return;
-      await syncAllPending();
-      return; // Success — syncAllPending already shows success notification
-    } catch (e) {
-      // Still offline — keep polling
-    }
-  }
-}
-
 // Listen for messages from the main app
 self.addEventListener('message', event => {
   if (!event.data) return;
@@ -356,11 +338,10 @@ self.addEventListener('message', event => {
   }
 
   if (event.data.type === 'SHOW_PENDING_NOTIFICATION') {
-    // Show notification AND start polling for connectivity.
-    // The notification keeps Chrome alive; the poll syncs as soon as we're online.
-    event.waitUntil(
-      showPendingNotif(event.data.count).then(() => pollAndSync())
-    );
+    // Show notification once as a reminder to reopen the app.
+    // No polling — iOS kills the SW when the app closes anyway.
+    // In-app sync (15s timer + visibility change + online event) handles sync.
+    event.waitUntil(showPendingNotif(event.data.count));
   }
 
   if (event.data.type === 'CLEAR_PENDING_NOTIFICATION') {
