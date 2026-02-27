@@ -1,4 +1,4 @@
-const CACHE_NAME = 'm3-safety-observer-v24';
+const CACHE_NAME = 'm3-safety-observer-v25';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
@@ -332,8 +332,8 @@ async function syncAllPending() {
 // Instead of relying on Chrome's sync event (unreliable on newer versions),
 // actively poll for connectivity while the notification keeps Chrome alive.
 async function pollAndSync() {
-  for (let i = 0; i < 200; i++) { // Poll for ~100 minutes (30s × 200)
-    await new Promise(r => setTimeout(r, 30000));
+  for (let i = 0; i < 600; i++) { // Poll for ~50 minutes (5s × 600)
+    await new Promise(r => setTimeout(r, 5000));
     try {
       const db = await openDB();
       const pending = await getAllPending(db);
