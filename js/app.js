@@ -872,8 +872,10 @@ async function updatePendingBadge() {
     if (pending.length > 0) {
       count.textContent = pending.length;
       badge.classList.add('visible');
+      if ('setAppBadge' in navigator) navigator.setAppBadge(pending.length).catch(() => {});
     } else {
       badge.classList.remove('visible');
+      if ('clearAppBadge' in navigator) navigator.clearAppBadge().catch(() => {});
     }
   } catch (e) {
     // Silently fail
@@ -1316,7 +1318,15 @@ async function submitObservation() {
 
     // Show persistent notification — keeps Chrome alive so background sync fires
     if ('Notification' in window && Notification.permission === 'granted') {
+      // Android: permission already granted from init() — show immediately
       getAllPending().then(pending => showPendingNotification(pending.length)).catch(() => {});
+    } else if ('Notification' in window && Notification.permission !== 'denied') {
+      // iOS: permission not yet granted — request here (button tap = user gesture)
+      requestNotificationPermission().then(granted => {
+        if (granted) {
+          getAllPending().then(pending => showPendingNotification(pending.length)).catch(() => {});
+        }
+      });
     }
   }
 
@@ -1765,8 +1775,10 @@ async function init() {
         const newWorker = reg.installing;
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed') {
+              newWorker.postMessage({ type: 'SKIP_WAITING' });
+            }
             if (newWorker.state === 'activated') {
-              // New SW is active — reload to get fresh cached assets
               window.location.reload();
             }
           });
@@ -1783,6 +1795,11 @@ async function init() {
       console.error('SW registration failed:', err);
     });
 
+    // Reload when a new SW takes control
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
+
     // Listen for messages from SW
     navigator.serviceWorker.addEventListener('message', event => {
       if (event.data && event.data.type === 'SYNC_COMPLETE') {
@@ -1795,6 +1812,19 @@ async function init() {
       }
     });
   }
+
+  // iOS PWA fix: iOS restores PWAs from memory (DOMContentLoaded doesn't re-fire).
+  // Check for SW updates when app resumes.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(reg => reg.update().catch(() => {}));
+    }
+  });
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(reg => reg.update().catch(() => {}));
+    }
+  });
 
   // If there are already pending items and we have notification permission,
   // ensure the persistent notification is shown (keeps Chrome alive)
