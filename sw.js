@@ -1,4 +1,4 @@
-const CACHE_NAME = 'm3-safety-observer-v19';
+const CACHE_NAME = 'm3-safety-observer-v20';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
@@ -6,9 +6,9 @@ const PENDING_NOTIFICATION_TAG = 'pending-observations';
 
 // Install: cache app shell
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      // Use relative URLs — works regardless of subdirectory
       const base = self.registration.scope;
       return cache.addAll([
         base,
@@ -20,7 +20,7 @@ self.addEventListener('install', event => {
         base + 'assets/icons/icon-192.png',
         base + 'assets/icons/icon-512.png',
       ]);
-    }).then(() => self.skipWaiting())
+    })
   );
 });
 
