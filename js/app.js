@@ -1320,14 +1320,10 @@ async function submitObservation() {
     // Request background sync so Android can send when back online (even if app closed)
     requestBackgroundSync();
 
-    // Await notification permission (instant if already granted, prompts if first time).
-    // Then show persistent notification — keeps Chrome alive so background sync fires.
-    requestNotificationPermission().then(async (granted) => {
-      if (granted) {
-        const pending = await getAllPending();
-        showPendingNotification(pending.length);
-      }
-    });
+    // Show persistent notification — keeps Chrome alive so background sync fires
+    if ('Notification' in window && Notification.permission === 'granted') {
+      getAllPending().then(pending => showPendingNotification(pending.length)).catch(() => {});
+    }
   }
 
   updatePendingBadge();
