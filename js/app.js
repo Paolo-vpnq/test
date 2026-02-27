@@ -872,11 +872,8 @@ async function updatePendingBadge() {
     if (pending.length > 0) {
       count.textContent = pending.length;
       badge.classList.add('visible');
-      // Set app icon badge (home screen number — works on iOS 16.4+ and Android)
-      if ('setAppBadge' in navigator) navigator.setAppBadge(pending.length).catch(() => {});
     } else {
       badge.classList.remove('visible');
-      if ('clearAppBadge' in navigator) navigator.clearAppBadge().catch(() => {});
     }
   } catch (e) {
     // Silently fail
@@ -1266,9 +1263,6 @@ async function submitObservation() {
     return;
   }
 
-  // Note: notification permission is requested in init() (works on Android)
-  // AND in the offline branch below with await (works on iOS via user gesture).
-
   const building = currentBuilding || document.getElementById('buildingSelect').value;
   const level = currentLevel || document.getElementById('levelSelect').value;
 
@@ -1609,8 +1603,8 @@ async function init() {
   // Install banner
   checkInstallBanner();
 
-  // Request notification permission early (works on Android without user gesture).
-  // iOS ignores this — iOS requires a user gesture, handled in submitObservation().
+  // Request notification permission early — needed for background sync keep-alive.
+  // On Android PWA, this shows a one-time prompt.
   requestNotificationPermission();
 
   // Load jsQR fallback if needed
@@ -1771,11 +1765,8 @@ async function init() {
         const newWorker = reg.installing;
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed') {
-              // New SW downloaded — tell it to take over immediately
-              newWorker.postMessage({ type: 'SKIP_WAITING' });
-            }
             if (newWorker.state === 'activated') {
+              // New SW is active — reload to get fresh cached assets
               window.location.reload();
             }
           });
@@ -1792,11 +1783,6 @@ async function init() {
       console.error('SW registration failed:', err);
     });
 
-    // Reload when a new SW takes control (works across all browsers)
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      window.location.reload();
-    });
-
     // Listen for messages from SW
     navigator.serviceWorker.addEventListener('message', event => {
       if (event.data && event.data.type === 'SYNC_COMPLETE') {
@@ -1809,19 +1795,6 @@ async function init() {
       }
     });
   }
-
-  // iOS PWA fix: when iOS restores a PWA from memory (no fresh load),
-  // DOMContentLoaded doesn't fire. These events catch that case.
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then(reg => reg.update().catch(() => {}));
-    }
-  });
-  window.addEventListener('pageshow', (event) => {
-    if (event.persisted && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then(reg => reg.update().catch(() => {}));
-    }
-  });
 
   // If there are already pending items and we have notification permission,
   // ensure the persistent notification is shown (keeps Chrome alive)

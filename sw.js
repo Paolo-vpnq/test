@@ -1,4 +1,4 @@
-const CACHE_NAME = 'm3-safety-observer-v22';
+const CACHE_NAME = 'm3-safety-observer-v23';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
@@ -8,6 +8,7 @@ const PENDING_NOTIFICATION_TAG = 'pending-observations';
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
+      // Use relative URLs — works regardless of subdirectory
       const base = self.registration.scope;
       return cache.addAll([
         base,
