@@ -1775,8 +1775,11 @@ async function init() {
         const newWorker = reg.installing;
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed') {
+              // New SW downloaded — tell it to take over immediately
+              newWorker.postMessage({ type: 'SKIP_WAITING' });
+            }
             if (newWorker.state === 'activated') {
-              // New SW is active — reload to get fresh cached assets
               window.location.reload();
             }
           });
