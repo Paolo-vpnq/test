@@ -1,4 +1,4 @@
-const CACHE_NAME = 'm3-safety-observer-v20';
+const CACHE_NAME = 'm3-safety-observer-v21';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
@@ -6,7 +6,6 @@ const PENDING_NOTIFICATION_TAG = 'pending-observations';
 
 // Install: cache app shell
 self.addEventListener('install', event => {
-  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       const base = self.registration.scope;
@@ -20,7 +19,7 @@ self.addEventListener('install', event => {
         base + 'assets/icons/icon-192.png',
         base + 'assets/icons/icon-512.png',
       ]);
-    })
+    }).then(() => self.skipWaiting())
   );
 });
 
@@ -235,11 +234,9 @@ async function showPendingNotif(count) {
       tag: PENDING_NOTIFICATION_TAG,
       renotify: false,
       requireInteraction: true, // Keeps notification visible (and Chrome alive)
-      // No silent: true — iOS suppresses silent notifications entirely
+      silent: true,
     });
   } catch (e) {}
-  // Update app icon badge with pending count
-  try { navigator.setAppBadge(count); } catch (e) {}
 }
 
 async function showSyncSuccessNotif(count) {
@@ -255,10 +252,9 @@ async function showSyncSuccessNotif(count) {
       tag: 'sync-success',
       renotify: true,
       requireInteraction: false,
+      silent: false,
     });
   } catch (e) {}
-  // Clear app icon badge — all synced
-  try { navigator.clearAppBadge(); } catch (e) {}
 }
 
 async function clearPendingNotif() {
@@ -266,7 +262,6 @@ async function clearPendingNotif() {
     const notifications = await self.registration.getNotifications({ tag: PENDING_NOTIFICATION_TAG });
     notifications.forEach(n => n.close());
   } catch (e) {}
-  try { navigator.clearAppBadge(); } catch (e) {}
 }
 
 // ===== Core Sync Logic =======================================
