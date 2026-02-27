@@ -1266,9 +1266,8 @@ async function submitObservation() {
     return;
   }
 
-  // Request notification permission on first submit (user gesture required for iOS).
-  // One-time prompt — subsequent calls are instant if already granted/denied.
-  requestNotificationPermission();
+  // Note: notification permission is requested in init() (works on Android)
+  // AND in the offline branch below with await (works on iOS via user gesture).
 
   const building = currentBuilding || document.getElementById('buildingSelect').value;
   const level = currentLevel || document.getElementById('levelSelect').value;
@@ -1321,10 +1320,14 @@ async function submitObservation() {
     // Request background sync so Android can send when back online (even if app closed)
     requestBackgroundSync();
 
-    // Show persistent notification — keeps Chrome alive so background sync fires
-    if ('Notification' in window && Notification.permission === 'granted') {
-      getAllPending().then(pending => showPendingNotification(pending.length)).catch(() => {});
-    }
+    // Await notification permission (instant if already granted, prompts if first time).
+    // Then show persistent notification — keeps Chrome alive so background sync fires.
+    requestNotificationPermission().then(async (granted) => {
+      if (granted) {
+        const pending = await getAllPending();
+        showPendingNotification(pending.length);
+      }
+    });
   }
 
   updatePendingBadge();
@@ -1609,6 +1612,10 @@ async function init() {
 
   // Install banner
   checkInstallBanner();
+
+  // Request notification permission early (works on Android without user gesture).
+  // iOS ignores this — iOS requires a user gesture, handled in submitObservation().
+  requestNotificationPermission();
 
   // Load jsQR fallback if needed
   loadJsQrFallback();
