@@ -1901,7 +1901,15 @@ async function init() {
   });
   document.getElementById('changeLocationLink').addEventListener('click', (e) => {
     e.preventDefault();
-    showLocationManual();
+    currentBuilding = '';
+    currentLevel = '';
+    document.getElementById('buildingValue').textContent = '--';
+    document.getElementById('levelValue').textContent = '--';
+    document.getElementById('buildingSelect').value = '';
+    document.getElementById('levelSelect').innerHTML = '<option value="" data-i18n="select_level">' + t('select_level') + '</option>';
+    document.getElementById('locationQrPrompt').classList.remove('hidden');
+    document.getElementById('locationSet').classList.add('hidden');
+    document.getElementById('locationManual').classList.add('hidden');
   });
 
   // Location: building select changes level options

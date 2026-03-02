@@ -1,4 +1,4 @@
-const CACHE_NAME = 'm3-safety-observer-ios-v3';
+const CACHE_NAME = 'm3-safety-observer-ios-v4';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
