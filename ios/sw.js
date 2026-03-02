@@ -1,4 +1,4 @@
-const CACHE_NAME = 'm3-safety-observer-ios-v2';
+const CACHE_NAME = 'm3-safety-observer-ios-v3';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
@@ -112,7 +112,7 @@ self.addEventListener('notificationclick', event => {
 
 function openDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 2);
+    const request = indexedDB.open(DB_NAME, 3);
     request.onupgradeneeded = (e) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
@@ -120,6 +120,9 @@ function openDB() {
       }
       if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
         db.createObjectStore(SETTINGS_STORE, { keyPath: 'key' });
+      }
+      if (!db.objectStoreNames.contains('history')) {
+        db.createObjectStore('history', { keyPath: 'id' });
       }
     };
     request.onsuccess = (e) => resolve(e.target.result);
@@ -224,6 +227,33 @@ async function postToEndpoint(url, payload) {
   });
 }
 
+// Save text-only copy to history store (never blocks sync)
+function addToHistorySW(db, observation) {
+  return new Promise((resolve) => {
+    try {
+      if (!db.objectStoreNames.contains('history')) {
+        resolve();
+        return;
+      }
+      const tx = db.transaction('history', 'readwrite');
+      const entry = {
+        id: observation.id,
+        datetime_created: observation.datetime_created || observation.timestamp,
+        building: observation.building,
+        level: observation.level,
+        safetyCategory: observation.safetyCategory || '',
+        description: observation.description,
+        mainContractor: observation.mainContractor || '',
+      };
+      tx.objectStore('history').put(entry);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    } catch (e) {
+      resolve();
+    }
+  });
+}
+
 // ===== Notification Helpers ==================================
 
 async function showPendingNotif(count) {
@@ -284,7 +314,7 @@ async function syncAllPending() {
   }
   if (!endpointUrl) {
     // Last resort: use hardcoded test endpoint
-    endpointUrl = 'https://webhook.site/6eebf958-ce28-4bcc-879a-ac81deddb63b';
+    endpointUrl = 'https://webhook.site/872b4482-e4d0-4e89-b71a-d9bf48112c81';
   }
 
   const pending = await getAllPending(db);
@@ -304,8 +334,10 @@ async function syncAllPending() {
     try {
       const payload = { ...obs };
       delete payload.status;
+      payload.datetime_sent = new Date().toISOString();
 
       await postToEndpoint(endpointUrl, JSON.stringify(payload));
+      await addToHistorySW(db, obs);
       await deleteObservation(db, obs.id);
       syncedCount++;
     } catch (err) {

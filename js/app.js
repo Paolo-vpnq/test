@@ -9,7 +9,7 @@
 const CONFIG = {
   // Power Automate POST URL. Set via settings or console: setPowerAutomateUrl('URL')
   // For testing, use webhook.site URL. For production, use Power Automate HTTP trigger URL.
-  ENDPOINT_URL: localStorage.getItem('powerAutomateUrl') || 'https://webhook.site/6eebf958-ce28-4bcc-879a-ac81deddb63b',
+  ENDPOINT_URL: localStorage.getItem('powerAutomateUrl') || 'https://webhook.site/872b4482-e4d0-4e89-b71a-d9bf48112c81',
 
   PROJECT: 'M3',
 
@@ -25,47 +25,37 @@ const CONFIG = {
     'SOUTH': { name: 'SOUTH - South Area', levels: ['L0','L1'] },
   },
 
+  // Add/remove contractors here — changes propagate to all users on next update.
+  // "My contractor is not listed" option is added automatically in the UI.
   MAIN_CONTRACTORS: [
     'MT Hojgaard',
     'Kemp & Lauritzen',
     'Caverion',
     'Bravida',
-    'Other',
   ],
 
-  COMPANIES: [
-    'Bravida Danmark A/S',
-    'Caverion Danmark A/S',
-    'Kemp & Lauritzen A/S',
-    'MT Hojgaard A/S',
-    'NNE A/S',
-    'Per Aarsleff A/S',
-    'Dansk Energi Service',
-    'Enemærke & Petersen',
-    'Other',
-  ],
-
+  // Add/remove categories here — changes propagate to all users on next update.
   CATEGORIES: [
-    { id: 1,  name: '1. Access/Exit', subs: ['1.1 Blocked emergency exit','1.2 Missing access route signage','1.3 Obstructed walkway'] },
-    { id: 2,  name: '2. Barriers/Signage/Shielding', subs: ['2.1 Missing barrier','2.2 Inadequate signage','2.3 Damaged shielding'] },
-    { id: 3,  name: '3. Housekeeping/Waste', subs: ['3.1 Poor housekeeping','3.2 Improper waste disposal','3.3 Unclean work area'] },
-    { id: 4,  name: '4. Noise/Dust/Fumes/Health Hazards', subs: ['4.1 Excessive noise','4.2 Dust exposure','4.3 Chemical fumes'] },
-    { id: 5,  name: '5. Storage and Handling of Materials', subs: ['5.1 Improper stacking','5.2 Unsecured materials','5.3 Blocked storage area'] },
-    { id: 6,  name: '6. Electrical Hazards', subs: ['6.1 Exposed wiring','6.2 Missing lockout/tagout','6.3 Damaged equipment'] },
-    { id: 7,  name: '7. Working at Heights', subs: ['7.1 Missing edge protection','7.2 Unsafe scaffold access','7.3 No harness','7.4 Unsafe ladder use'] },
-    { id: 8,  name: '8. Lifting/Rigging', subs: ['8.1 Overloaded crane','8.2 Missing rigging inspection','8.3 Unsecured load'] },
-    { id: 9,  name: '9. Hot Works', subs: ['9.1 Missing fire watch','9.2 No hot work permit','9.3 Flammable material nearby'] },
-    { id: 10, name: '10. Mobile Elevating Work Equipment', subs: ['10.1 Missing inspection tag','10.2 Unsafe operation','10.3 Overloaded platform'] },
-    { id: 11, name: '11. Lighting', subs: ['11.1 Insufficient lighting','11.2 Broken light fixtures','11.3 Glare hazard'] },
-    { id: 12, name: '12. Documentation and Procedures', subs: ['12.1 Missing risk assessment','12.2 Expired permit','12.3 Missing method statement'] },
-    { id: 13, name: '13. Scaffold/Alloy Towers', subs: ['13.1 Missing scaffold tag','13.2 Incomplete scaffold','13.3 Unauthorized modification'] },
-    { id: 14, name: '14. Slip/Trip Hazard', subs: ['14.1 Wet surface','14.2 Loose cables','14.3 Uneven flooring'] },
-    { id: 15, name: '15. Personal Protective Equipment', subs: ['15.1 Missing hard hat','15.2 Missing safety glasses','15.3 Missing hi-vis','15.4 Missing gloves'] },
-    { id: 16, name: '16. Use of Tools and Machinery', subs: ['16.1 Damaged tool','16.2 Missing guard','16.3 Improper tool use'] },
-    { id: 17, name: '17. Environmental Hazards', subs: ['17.1 Spill or leak','17.2 Missing containment','17.3 Improper disposal'] },
-    { id: 18, name: '18. Emergency Equipment', subs: ['18.1 Missing fire extinguisher','18.2 Blocked emergency equipment','18.3 Expired first aid kit'] },
-    { id: 19, name: '19. Excavation/Trenches', subs: ['19.1 Missing shoring','19.2 No edge protection','19.3 Unauthorized access'] },
-    { id: 20, name: '20. Other', subs: [] },
+    { id: 1,  name: '1. Access/Exit' },
+    { id: 2,  name: '2. Barriers/Signage/Shielding' },
+    { id: 3,  name: '3. Housekeeping/Waste' },
+    { id: 4,  name: '4. Noise/Dust/Fumes/Health Hazards' },
+    { id: 5,  name: '5. Storage and Handling of Materials' },
+    { id: 6,  name: '6. Electrical Hazards' },
+    { id: 7,  name: '7. Working at Heights' },
+    { id: 8,  name: '8. Lifting/Rigging' },
+    { id: 9,  name: '9. Hot Works' },
+    { id: 10, name: '10. Mobile Elevating Work Equipment' },
+    { id: 11, name: '11. Lighting' },
+    { id: 12, name: '12. Documentation and Procedures' },
+    { id: 13, name: '13. Scaffold/Alloy Towers' },
+    { id: 14, name: '14. Slip/Trip Hazard' },
+    { id: 15, name: '15. Personal Protective Equipment' },
+    { id: 16, name: '16. Use of Tools and Machinery' },
+    { id: 17, name: '17. Environmental Hazards' },
+    { id: 18, name: '18. Emergency Equipment' },
+    { id: 19, name: '19. Excavation/Trenches' },
+    { id: 20, name: '20. Other' },
   ],
 };
 
@@ -79,13 +69,12 @@ const TRANSLATIONS = {
     install_instructions: 'To install: tap Share then Add to Home Screen',
     dismiss: 'Dismiss', location: 'Location', building: 'Building', level: 'Level',
     select_building: 'Select building...', select_level: 'Select level...',
-    change_location: 'Change location', your_details: 'Your Details',
+    change_location: 'Change', your_details: 'Your Details',
     observer_name: 'Name', main_contractor: 'Main Contractor',
-    company_name: 'Company', select_contractor: 'Select...',
-    observation: 'Observation', observation_type: 'Type',
-    safe: 'Safe', unsafe: 'Unsafe',
-    category: 'Category', subcategory: 'Subcategory (Optional)',
-    select_category: 'Select category...', select_subcategory: 'Select subcategory...',
+    select_contractor: 'Select...',
+    observation: 'Observation',
+    category: 'Category',
+    select_category: 'Select category...',
     description: 'Description', photo: 'Photo',
     take_photo: 'Take Photo', from_gallery: 'Gallery',
     submit: 'Submit Observation', new_report: 'New Report',
@@ -99,11 +88,22 @@ const TRANSLATIONS = {
     confirm_clear: 'Delete all pending reports? This cannot be undone.',
     synced_count: 'reports synced',
     no_endpoint: 'No endpoint configured. Report saved locally.',
-    type_to_search: 'Type to search...',
     scan_qr: 'Scan QR Code',
     qr_hint: 'Point camera at a location QR code',
     qr_no_camera: 'Camera access not available',
     qr_found: 'Location set from QR code!',
+    enter_manually: 'Enter manually',
+    history: 'History',
+    history_empty: 'No observations sent yet.',
+    not_set: 'Not set',
+    setup_title: 'Welcome to NNE Safety Observer',
+    setup_subtitle: 'Before you start, please tell us who you are',
+    setup_contractor_label: 'Which main contractor are you working for?',
+    setup_other_contractor: 'Your contractor name',
+    setup_name_label: 'Your name',
+    setup_name_hint: 'Optional — useful if your company rewards safety observations',
+    setup_done: 'Get Started',
+    contractor_not_listed: 'My contractor is not listed',
   },
   da: {
     status_online: 'Online', status_offline: 'Offline — rapporter gemt lokalt',
@@ -111,13 +111,12 @@ const TRANSLATIONS = {
     install_instructions: 'For at installere: tryk Del, derefter Tilf\u00f8j til hjemmesk\u00e6rm',
     dismiss: 'Afvis', location: 'Placering', building: 'Bygning', level: 'Etage',
     select_building: 'V\u00e6lg bygning...', select_level: 'V\u00e6lg etage...',
-    change_location: 'Skift placering', your_details: 'Dine oplysninger',
+    change_location: 'Change', your_details: 'Dine oplysninger',
     observer_name: 'Navn', main_contractor: 'Hovedentrepren\u00f8r',
-    company_name: 'Firma', select_contractor: 'V\u00e6lg...',
-    observation: 'Observation', observation_type: 'Type',
-    safe: 'Sikker', unsafe: 'Usikker',
-    category: 'Kategori', subcategory: 'Underkategori (Valgfri)',
-    select_category: 'V\u00e6lg kategori...', select_subcategory: 'V\u00e6lg underkategori...',
+    select_contractor: 'V\u00e6lg...',
+    observation: 'Observation',
+    category: 'Kategori',
+    select_category: 'V\u00e6lg kategori...',
     description: 'Beskrivelse', photo: 'Foto',
     take_photo: 'Tag foto', from_gallery: 'Galleri',
     submit: 'Indsend observation', new_report: 'Ny rapport',
@@ -131,11 +130,22 @@ const TRANSLATIONS = {
     confirm_clear: 'Slet alle ventende rapporter? Dette kan ikke fortrydes.',
     synced_count: 'rapporter synkroniseret',
     no_endpoint: 'Ingen endpoint konfigureret. Rapport gemt lokalt.',
-    type_to_search: 'Skriv for at s\u00f8ge...',
     scan_qr: 'Scan QR-kode',
     qr_hint: 'Peg kameraet mod en placeringskode',
     qr_no_camera: 'Kameraadgang ikke tilg\u00e6ngelig',
     qr_found: 'Placering sat fra QR-kode!',
+    enter_manually: 'Enter manually',
+    history: 'History',
+    history_empty: 'No observations sent yet.',
+    not_set: 'Not set',
+    setup_title: 'Welcome to NNE Safety Observer',
+    setup_subtitle: 'Before you start, please tell us who you are',
+    setup_contractor_label: 'Which main contractor are you working for?',
+    setup_other_contractor: 'Your contractor name',
+    setup_name_label: 'Your name',
+    setup_name_hint: 'Optional — useful if your company rewards safety observations',
+    setup_done: 'Get Started',
+    contractor_not_listed: 'My contractor is not listed',
   },
   de: {
     status_online: 'Online', status_offline: 'Offline — Berichte lokal gespeichert',
@@ -143,13 +153,12 @@ const TRANSLATIONS = {
     install_instructions: 'Zum Installieren: Teilen antippen, dann Zum Home-Bildschirm',
     dismiss: 'Schlie\u00dfen', location: 'Standort', building: 'Geb\u00e4ude', level: 'Ebene',
     select_building: 'Geb\u00e4ude w\u00e4hlen...', select_level: 'Ebene w\u00e4hlen...',
-    change_location: 'Standort \u00e4ndern', your_details: 'Ihre Angaben',
+    change_location: 'Change', your_details: 'Ihre Angaben',
     observer_name: 'Name', main_contractor: 'Hauptauftragnehmer',
-    company_name: 'Firma', select_contractor: 'W\u00e4hlen...',
-    observation: 'Beobachtung', observation_type: 'Typ',
-    safe: 'Sicher', unsafe: 'Unsicher',
-    category: 'Kategorie', subcategory: 'Unterkategorie (Optional)',
-    select_category: 'Kategorie w\u00e4hlen...', select_subcategory: 'Unterkategorie w\u00e4hlen...',
+    select_contractor: 'W\u00e4hlen...',
+    observation: 'Beobachtung',
+    category: 'Kategorie',
+    select_category: 'Kategorie w\u00e4hlen...',
     description: 'Beschreibung', photo: 'Foto',
     take_photo: 'Foto aufnehmen', from_gallery: 'Galerie',
     submit: 'Beobachtung einreichen', new_report: 'Neuer Bericht',
@@ -163,11 +172,22 @@ const TRANSLATIONS = {
     confirm_clear: 'Alle ausstehenden Berichte l\u00f6schen? Dies kann nicht r\u00fcckg\u00e4ngig gemacht werden.',
     synced_count: 'Berichte synchronisiert',
     no_endpoint: 'Kein Endpoint konfiguriert. Bericht lokal gespeichert.',
-    type_to_search: 'Suchen...',
     scan_qr: 'QR-Code scannen',
     qr_hint: 'Kamera auf einen Standort-QR-Code richten',
     qr_no_camera: 'Kamerazugriff nicht verf\u00fcgbar',
     qr_found: 'Standort aus QR-Code gesetzt!',
+    enter_manually: 'Enter manually',
+    history: 'History',
+    history_empty: 'No observations sent yet.',
+    not_set: 'Not set',
+    setup_title: 'Welcome to NNE Safety Observer',
+    setup_subtitle: 'Before you start, please tell us who you are',
+    setup_contractor_label: 'Which main contractor are you working for?',
+    setup_other_contractor: 'Your contractor name',
+    setup_name_label: 'Your name',
+    setup_name_hint: 'Optional — useful if your company rewards safety observations',
+    setup_done: 'Get Started',
+    contractor_not_listed: 'My contractor is not listed',
   },
   pl: {
     status_online: 'Online', status_offline: 'Offline — raporty zapisane lokalnie',
@@ -175,13 +195,12 @@ const TRANSLATIONS = {
     install_instructions: 'Aby zainstalowa\u0107: naci\u015bnij Udost\u0119pnij, nast\u0119pnie Dodaj do ekranu g\u0142\u00f3wnego',
     dismiss: 'Zamknij', location: 'Lokalizacja', building: 'Budynek', level: 'Poziom',
     select_building: 'Wybierz budynek...', select_level: 'Wybierz poziom...',
-    change_location: 'Zmie\u0144 lokalizacj\u0119', your_details: 'Twoje dane',
+    change_location: 'Change', your_details: 'Twoje dane',
     observer_name: 'Imi\u0119 i nazwisko', main_contractor: 'G\u0142\u00f3wny wykonawca',
-    company_name: 'Firma', select_contractor: 'Wybierz...',
-    observation: 'Obserwacja', observation_type: 'Typ',
-    safe: 'Bezpieczne', unsafe: 'Niebezpieczne',
-    category: 'Kategoria', subcategory: 'Podkategoria (Opcjonalnie)',
-    select_category: 'Wybierz kategori\u0119...', select_subcategory: 'Wybierz podkategori\u0119...',
+    select_contractor: 'Wybierz...',
+    observation: 'Obserwacja',
+    category: 'Kategoria',
+    select_category: 'Wybierz kategori\u0119...',
     description: 'Opis', photo: 'Zdj\u0119cie',
     take_photo: 'Zr\u00f3b zdj\u0119cie', from_gallery: 'Galeria',
     submit: 'Wy\u015blij obserwacj\u0119', new_report: 'Nowy raport',
@@ -195,11 +214,22 @@ const TRANSLATIONS = {
     confirm_clear: 'Usun\u0105\u0107 wszystkie oczekuj\u0105ce raporty? Tego nie mo\u017cna cofn\u0105\u0107.',
     synced_count: 'raport\u00f3w zsynchronizowanych',
     no_endpoint: 'Brak skonfigurowanego endpointu. Raport zapisany lokalnie.',
-    type_to_search: 'Szukaj...',
     scan_qr: 'Skanuj kod QR',
     qr_hint: 'Skieruj kamer\u0119 na kod QR lokalizacji',
     qr_no_camera: 'Kamera niedost\u0119pna',
     qr_found: 'Lokalizacja ustawiona z kodu QR!',
+    enter_manually: 'Enter manually',
+    history: 'History',
+    history_empty: 'No observations sent yet.',
+    not_set: 'Not set',
+    setup_title: 'Welcome to NNE Safety Observer',
+    setup_subtitle: 'Before you start, please tell us who you are',
+    setup_contractor_label: 'Which main contractor are you working for?',
+    setup_other_contractor: 'Your contractor name',
+    setup_name_label: 'Your name',
+    setup_name_hint: 'Optional — useful if your company rewards safety observations',
+    setup_done: 'Get Started',
+    contractor_not_listed: 'My contractor is not listed',
   },
   lt: {
     status_online: 'Prisijungta', status_offline: 'Neprisijungta — ataskaitos i\u0161saugotos',
@@ -207,13 +237,12 @@ const TRANSLATIONS = {
     install_instructions: '\u012ediegti: paspauskite Dalintis, tada Prid\u0117ti prie ekrano',
     dismiss: 'Atmesti', location: 'Vieta', building: 'Pastatas', level: 'Auk\u0161tas',
     select_building: 'Pasirinkite pastat\u0105...', select_level: 'Pasirinkite auk\u0161t\u0105...',
-    change_location: 'Keisti viet\u0105', your_details: 'J\u016bs\u0173 duomenys',
+    change_location: 'Change', your_details: 'J\u016bs\u0173 duomenys',
     observer_name: 'Vardas', main_contractor: 'Pagrindinis rangovas',
-    company_name: '\u012emon\u0117', select_contractor: 'Pasirinkite...',
-    observation: 'Steb\u0117jimas', observation_type: 'Tipas',
-    safe: 'Saugu', unsafe: 'Nesaugu',
-    category: 'Kategorija', subcategory: 'Subkategorija (Neprivaloma)',
-    select_category: 'Pasirinkite kategorij\u0105...', select_subcategory: 'Pasirinkite subkategorij\u0105...',
+    select_contractor: 'Pasirinkite...',
+    observation: 'Steb\u0117jimas',
+    category: 'Kategorija',
+    select_category: 'Pasirinkite kategorij\u0105...',
     description: 'Apra\u0161ymas', photo: 'Nuotrauka',
     take_photo: 'Fotografuoti', from_gallery: 'Galerija',
     submit: 'Pateikti steb\u0117jim\u0105', new_report: 'Nauja ataskaita',
@@ -227,11 +256,22 @@ const TRANSLATIONS = {
     confirm_clear: 'I\u0161trinti visas laukian\u010dias ataskaitas? Negalima at\u0161aukti.',
     synced_count: 'ataskaitos sinchronizuotos',
     no_endpoint: 'Endpointas nenurodytas. Ataskaita i\u0161saugota.',
-    type_to_search: 'Ie\u0161koti...',
     scan_qr: 'Skenuoti QR kod\u0105',
     qr_hint: 'Nukreipkite kamer\u0105 \u012f vietos QR kod\u0105',
     qr_no_camera: 'Kamera nepasiekiama',
     qr_found: 'Vieta nustatyta i\u0161 QR kodo!',
+    enter_manually: 'Enter manually',
+    history: 'History',
+    history_empty: 'No observations sent yet.',
+    not_set: 'Not set',
+    setup_title: 'Welcome to NNE Safety Observer',
+    setup_subtitle: 'Before you start, please tell us who you are',
+    setup_contractor_label: 'Which main contractor are you working for?',
+    setup_other_contractor: 'Your contractor name',
+    setup_name_label: 'Your name',
+    setup_name_hint: 'Optional — useful if your company rewards safety observations',
+    setup_done: 'Get Started',
+    contractor_not_listed: 'My contractor is not listed',
   },
   ro: {
     status_online: 'Online', status_offline: 'Offline — rapoarte salvate local',
@@ -239,13 +279,12 @@ const TRANSLATIONS = {
     install_instructions: 'Pentru instalare: ap\u0103sa\u021bi Partajare apoi Ad\u0103ugare pe ecran',
     dismiss: '\u00cenchide', location: 'Loca\u021bie', building: 'Cl\u0103dire', level: 'Nivel',
     select_building: 'Selecta\u021bi cl\u0103direa...', select_level: 'Selecta\u021bi nivelul...',
-    change_location: 'Schimb\u0103 loca\u021bia', your_details: 'Datele tale',
+    change_location: 'Change', your_details: 'Datele tale',
     observer_name: 'Nume', main_contractor: 'Antreprenor principal',
-    company_name: 'Companie', select_contractor: 'Selecta\u021bi...',
-    observation: 'Observa\u021bie', observation_type: 'Tip',
-    safe: 'Sigur', unsafe: 'Nesigur',
-    category: 'Categorie', subcategory: 'Subcategorie (Op\u021bional)',
-    select_category: 'Selecta\u021bi categoria...', select_subcategory: 'Selecta\u021bi subcategoria...',
+    select_contractor: 'Selecta\u021bi...',
+    observation: 'Observa\u021bie',
+    category: 'Categorie',
+    select_category: 'Selecta\u021bi categoria...',
     description: 'Descriere', photo: 'Fotografie',
     take_photo: 'Face\u021bi o fotografie', from_gallery: 'Galerie',
     submit: 'Trimite\u021bi observa\u021bia', new_report: 'Raport nou',
@@ -259,11 +298,22 @@ const TRANSLATIONS = {
     confirm_clear: '\u0218terge\u021bi toate rapoartele? Aceast\u0103 ac\u021biune nu poate fi anulat\u0103.',
     synced_count: 'rapoarte sincronizate',
     no_endpoint: 'Niciun endpoint configurat. Raport salvat local.',
-    type_to_search: 'C\u0103uta\u021bi...',
     scan_qr: 'Scana\u021bi codul QR',
     qr_hint: '\u00cendrepta\u021bi camera spre un cod QR',
     qr_no_camera: 'Camera nu este disponibil\u0103',
     qr_found: 'Loca\u021bie setat\u0103 din codul QR!',
+    enter_manually: 'Enter manually',
+    history: 'History',
+    history_empty: 'No observations sent yet.',
+    not_set: 'Not set',
+    setup_title: 'Welcome to NNE Safety Observer',
+    setup_subtitle: 'Before you start, please tell us who you are',
+    setup_contractor_label: 'Which main contractor are you working for?',
+    setup_other_contractor: 'Your contractor name',
+    setup_name_label: 'Your name',
+    setup_name_hint: 'Optional — useful if your company rewards safety observations',
+    setup_done: 'Get Started',
+    contractor_not_listed: 'My contractor is not listed',
   },
   hr: {
     status_online: 'Online', status_offline: 'Offline — izvje\u0161\u0107a spremljena lokalno',
@@ -271,13 +321,12 @@ const TRANSLATIONS = {
     install_instructions: 'Za instalaciju: pritisnite Dijeli, zatim Dodaj na po\u010detni zaslon',
     dismiss: 'Odbaci', location: 'Lokacija', building: 'Zgrada', level: 'Razina',
     select_building: 'Odaberite zgradu...', select_level: 'Odaberite razinu...',
-    change_location: 'Promijeni lokaciju', your_details: 'Va\u0161i podaci',
+    change_location: 'Change', your_details: 'Va\u0161i podaci',
     observer_name: 'Ime', main_contractor: 'Glavni izvo\u0111a\u010d',
-    company_name: 'Tvrtka', select_contractor: 'Odaberite...',
-    observation: 'Opa\u017eanje', observation_type: 'Vrsta',
-    safe: 'Sigurno', unsafe: 'Nesigurno',
-    category: 'Kategorija', subcategory: 'Potkategorija (Neobavezno)',
-    select_category: 'Odaberite kategoriju...', select_subcategory: 'Odaberite potkategoriju...',
+    select_contractor: 'Odaberite...',
+    observation: 'Opa\u017eanje',
+    category: 'Kategorija',
+    select_category: 'Odaberite kategoriju...',
     description: 'Opis', photo: 'Fotografija',
     take_photo: 'Snimi fotografiju', from_gallery: 'Galerija',
     submit: 'Po\u0161alji opa\u017eanje', new_report: 'Novo izvje\u0161\u0107e',
@@ -291,11 +340,22 @@ const TRANSLATIONS = {
     confirm_clear: 'Izbrisati sva izvje\u0161\u0107a na \u010dekanju? Ovo se ne mo\u017ee poni\u0161titi.',
     synced_count: 'izvje\u0161\u0107a sinkronizirana',
     no_endpoint: 'Endpoint nije konfiguriran. Izvje\u0161\u0107e spremljeno lokalno.',
-    type_to_search: 'Pretra\u017ei...',
     scan_qr: 'Skeniraj QR kod',
     qr_hint: 'Usmjerite kameru na QR kod lokacije',
     qr_no_camera: 'Kamera nije dostupna',
     qr_found: 'Lokacija postavljena iz QR koda!',
+    enter_manually: 'Enter manually',
+    history: 'History',
+    history_empty: 'No observations sent yet.',
+    not_set: 'Not set',
+    setup_title: 'Welcome to NNE Safety Observer',
+    setup_subtitle: 'Before you start, please tell us who you are',
+    setup_contractor_label: 'Which main contractor are you working for?',
+    setup_other_contractor: 'Your contractor name',
+    setup_name_label: 'Your name',
+    setup_name_hint: 'Optional — useful if your company rewards safety observations',
+    setup_done: 'Get Started',
+    contractor_not_listed: 'My contractor is not listed',
   },
   sv: {
     status_online: 'Online', status_offline: 'Offline — rapporter sparade lokalt',
@@ -303,13 +363,12 @@ const TRANSLATIONS = {
     install_instructions: 'F\u00f6r att installera: tryck Dela, sedan L\u00e4gg till p\u00e5 hemsk\u00e4rmen',
     dismiss: 'Avvisa', location: 'Plats', building: 'Byggnad', level: 'V\u00e5ning',
     select_building: 'V\u00e4lj byggnad...', select_level: 'V\u00e4lj v\u00e5ning...',
-    change_location: '\u00c4ndra plats', your_details: 'Dina uppgifter',
+    change_location: 'Change', your_details: 'Dina uppgifter',
     observer_name: 'Namn', main_contractor: 'Huvudentrepren\u00f6r',
-    company_name: 'F\u00f6retag', select_contractor: 'V\u00e4lj...',
-    observation: 'Observation', observation_type: 'Typ',
-    safe: 'S\u00e4ker', unsafe: 'Os\u00e4ker',
-    category: 'Kategori', subcategory: 'Underkategori (Valfritt)',
-    select_category: 'V\u00e4lj kategori...', select_subcategory: 'V\u00e4lj underkategori...',
+    select_contractor: 'V\u00e4lj...',
+    observation: 'Observation',
+    category: 'Kategori',
+    select_category: 'V\u00e4lj kategori...',
     description: 'Beskrivning', photo: 'Foto',
     take_photo: 'Ta foto', from_gallery: 'Galleri',
     submit: 'Skicka observation', new_report: 'Ny rapport',
@@ -323,11 +382,22 @@ const TRANSLATIONS = {
     confirm_clear: 'Radera alla v\u00e4ntande rapporter? Detta kan inte \u00e5ngras.',
     synced_count: 'rapporter synkroniserade',
     no_endpoint: 'Ingen endpoint konfigurerad. Rapport sparad lokalt.',
-    type_to_search: 'S\u00f6k...',
     scan_qr: 'Skanna QR-kod',
     qr_hint: 'Rikta kameran mot en plats-QR-kod',
     qr_no_camera: 'Kamera\u00e5tkomst inte tillg\u00e4nglig',
     qr_found: 'Plats satt fr\u00e5n QR-kod!',
+    enter_manually: 'Enter manually',
+    history: 'History',
+    history_empty: 'No observations sent yet.',
+    not_set: 'Not set',
+    setup_title: 'Welcome to NNE Safety Observer',
+    setup_subtitle: 'Before you start, please tell us who you are',
+    setup_contractor_label: 'Which main contractor are you working for?',
+    setup_other_contractor: 'Your contractor name',
+    setup_name_label: 'Your name',
+    setup_name_hint: 'Optional — useful if your company rewards safety observations',
+    setup_done: 'Get Started',
+    contractor_not_listed: 'My contractor is not listed',
   },
   hi: {
     status_online: '\u0911\u0928\u0932\u093e\u0907\u0928', status_offline: '\u0911\u092b\u093c\u0932\u093e\u0907\u0928 — \u0930\u093f\u092a\u094b\u0930\u094d\u091f \u0938\u094d\u0925\u093e\u0928\u0940\u092f \u0930\u0942\u092a \u0938\u0947 \u0938\u0939\u0947\u091c\u0940 \u0917\u0908\u0902',
@@ -335,13 +405,12 @@ const TRANSLATIONS = {
     install_instructions: '\u0907\u0902\u0938\u094d\u091f\u0949\u0932 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f: \u0936\u0947\u092f\u0930 \u092a\u0930 \u091f\u0948\u092a \u0915\u0930\u0947\u0902, \u092b\u093f\u0930 \u0939\u094b\u092e \u0938\u094d\u0915\u094d\u0930\u0940\u0928 \u092a\u0930 \u091c\u094b\u0921\u093c\u0947\u0902',
     dismiss: '\u0916\u093e\u0930\u093f\u091c \u0915\u0930\u0947\u0902', location: '\u0938\u094d\u0925\u093e\u0928', building: '\u092d\u0935\u0928', level: '\u092e\u0902\u091c\u093c\u093f\u0932',
     select_building: '\u092d\u0935\u0928 \u091a\u0941\u0928\u0947\u0902...', select_level: '\u092e\u0902\u091c\u093c\u093f\u0932 \u091a\u0941\u0928\u0947\u0902...',
-    change_location: '\u0938\u094d\u0925\u093e\u0928 \u092c\u0926\u0932\u0947\u0902', your_details: '\u0906\u092a\u0915\u093e \u0935\u093f\u0935\u0930\u0923',
+    change_location: 'Change', your_details: '\u0906\u092a\u0915\u093e \u0935\u093f\u0935\u0930\u0923',
     observer_name: '\u0928\u093e\u092e', main_contractor: '\u092e\u0941\u0916\u094d\u092f \u0920\u0947\u0915\u0947\u0926\u093e\u0930',
-    company_name: '\u0915\u0902\u092a\u0928\u0940', select_contractor: '\u091a\u0941\u0928\u0947\u0902...',
-    observation: '\u0905\u0935\u0932\u094b\u0915\u0928', observation_type: '\u092a\u094d\u0930\u0915\u093e\u0930',
-    safe: '\u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924', unsafe: '\u0905\u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924',
-    category: '\u0936\u094d\u0930\u0947\u0923\u0940', subcategory: '\u0909\u092a\u0936\u094d\u0930\u0947\u0923\u0940 (\u0935\u0948\u0915\u0932\u094d\u092a\u093f\u0915)',
-    select_category: '\u0936\u094d\u0930\u0947\u0923\u0940 \u091a\u0941\u0928\u0947\u0902...', select_subcategory: '\u0909\u092a\u0936\u094d\u0930\u0947\u0923\u0940 \u091a\u0941\u0928\u0947\u0902...',
+    select_contractor: '\u091a\u0941\u0928\u0947\u0902...',
+    observation: '\u0905\u0935\u0932\u094b\u0915\u0928',
+    category: '\u0936\u094d\u0930\u0947\u0923\u0940',
+    select_category: '\u0936\u094d\u0930\u0947\u0923\u0940 \u091a\u0941\u0928\u0947\u0902...',
     description: '\u0935\u093f\u0935\u0930\u0923', photo: '\u092b\u093c\u094b\u091f\u094b',
     take_photo: '\u092b\u093c\u094b\u091f\u094b \u0932\u0947\u0902', from_gallery: '\u0917\u0948\u0932\u0930\u0940',
     submit: '\u0905\u0935\u0932\u094b\u0915\u0928 \u091c\u092e\u093e \u0915\u0930\u0947\u0902', new_report: '\u0928\u0908 \u0930\u093f\u092a\u094b\u0930\u094d\u091f',
@@ -355,11 +424,22 @@ const TRANSLATIONS = {
     confirm_clear: '\u0938\u092d\u0940 \u0932\u0902\u092c\u093f\u0924 \u0930\u093f\u092a\u094b\u0930\u094d\u091f \u0939\u091f\u093e\u090f\u0902? \u092f\u0939 \u0935\u093e\u092a\u0938 \u0928\u0939\u0940\u0902 \u0939\u094b \u0938\u0915\u0924\u093e\u0964',
     synced_count: '\u0930\u093f\u092a\u094b\u0930\u094d\u091f \u0938\u093f\u0902\u0915 \u0939\u0941\u0908\u0902',
     no_endpoint: '\u0915\u094b\u0908 \u090f\u0902\u0921\u092a\u0949\u0907\u0902\u091f \u0928\u0939\u0940\u0902\u0964 \u0930\u093f\u092a\u094b\u0930\u094d\u091f \u0938\u094d\u0925\u093e\u0928\u0940\u092f \u0930\u0942\u092a \u0938\u0947 \u0938\u0939\u0947\u091c\u0940 \u0917\u0908\u0964',
-    type_to_search: '\u0916\u094b\u091c\u0947\u0902...',
     scan_qr: 'QR \u0915\u094b\u0921 \u0938\u094d\u0915\u0948\u0928 \u0915\u0930\u0947\u0902',
     qr_hint: '\u0915\u0948\u092e\u0930\u093e \u0938\u094d\u0925\u093e\u0928 QR \u0915\u094b\u0921 \u0915\u0940 \u0913\u0930 \u0915\u0930\u0947\u0902',
     qr_no_camera: '\u0915\u0948\u092e\u0930\u093e \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u0939\u0940\u0902 \u0939\u0948',
     qr_found: 'QR \u0915\u094b\u0921 \u0938\u0947 \u0938\u094d\u0925\u093e\u0928 \u0938\u0947\u091f \u0915\u093f\u092f\u093e \u0917\u092f\u093e!',
+    enter_manually: 'Enter manually',
+    history: 'History',
+    history_empty: 'No observations sent yet.',
+    not_set: 'Not set',
+    setup_title: 'Welcome to NNE Safety Observer',
+    setup_subtitle: 'Before you start, please tell us who you are',
+    setup_contractor_label: 'Which main contractor are you working for?',
+    setup_other_contractor: 'Your contractor name',
+    setup_name_label: 'Your name',
+    setup_name_hint: 'Optional — useful if your company rewards safety observations',
+    setup_done: 'Get Started',
+    contractor_not_listed: 'My contractor is not listed',
   },
   sk: {
     status_online: 'Online', status_offline: 'Offline — spr\u00e1vy ulo\u017een\u00e9 lok\u00e1lne',
@@ -367,13 +447,12 @@ const TRANSLATIONS = {
     install_instructions: 'Na in\u0161tal\u00e1ciu: klepnite na Zdie\u013ea\u0165 a potom Prida\u0165 na plochu',
     dismiss: 'Zavrie\u0165', location: 'Poloha', building: 'Budova', level: 'Poschodie',
     select_building: 'Vyberte budovu...', select_level: 'Vyberte poschodie...',
-    change_location: 'Zmeni\u0165 polohu', your_details: 'Va\u0161e \u00fadaje',
+    change_location: 'Change', your_details: 'Va\u0161e \u00fadaje',
     observer_name: 'Meno', main_contractor: 'Hlavn\u00fd dod\u00e1vate\u013e',
-    company_name: 'Spolo\u010dnos\u0165', select_contractor: 'Vyberte...',
-    observation: 'Pozorovanie', observation_type: 'Typ',
-    safe: 'Bezpe\u010dn\u00e9', unsafe: 'Nebezpe\u010dn\u00e9',
-    category: 'Kateg\u00f3ria', subcategory: 'Podkateg\u00f3ria (Volite\u013en\u00e9)',
-    select_category: 'Vyberte kateg\u00f3riu...', select_subcategory: 'Vyberte podkateg\u00f3riu...',
+    select_contractor: 'Vyberte...',
+    observation: 'Pozorovanie',
+    category: 'Kateg\u00f3ria',
+    select_category: 'Vyberte kateg\u00f3riu...',
     description: 'Popis', photo: 'Fotografia',
     take_photo: 'Odfoti\u0165', from_gallery: 'Gal\u00e9ria',
     submit: 'Odosla\u0165 pozorovanie', new_report: 'Nov\u00e1 spr\u00e1va',
@@ -387,11 +466,22 @@ const TRANSLATIONS = {
     confirm_clear: 'Vymaza\u0165 v\u0161etky \u010dakaj\u00face spr\u00e1vy? Toto sa ned\u00e1 vr\u00e1ti\u0165.',
     synced_count: 'spr\u00e1v synchronizovan\u00fdch',
     no_endpoint: '\u017diadny endpoint nakonfigurovan\u00fd. Spr\u00e1va ulo\u017een\u00e1 lok\u00e1lne.',
-    type_to_search: 'H\u013eada\u0165...',
     scan_qr: 'Skenova\u0165 QR k\u00f3d',
     qr_hint: 'Namierte kameru na QR k\u00f3d lokacie',
     qr_no_camera: 'Kamera nie je dostupn\u00e1',
     qr_found: 'Poloha nastaven\u00e1 z QR k\u00f3du!',
+    enter_manually: 'Enter manually',
+    history: 'History',
+    history_empty: 'No observations sent yet.',
+    not_set: 'Not set',
+    setup_title: 'Welcome to NNE Safety Observer',
+    setup_subtitle: 'Before you start, please tell us who you are',
+    setup_contractor_label: 'Which main contractor are you working for?',
+    setup_other_contractor: 'Your contractor name',
+    setup_name_label: 'Your name',
+    setup_name_hint: 'Optional — useful if your company rewards safety observations',
+    setup_done: 'Get Started',
+    contractor_not_listed: 'My contractor is not listed',
   },
   tr: {
     status_online: '\u00c7evrimi\u00e7i', status_offline: '\u00c7evrimd\u0131\u015f\u0131 — raporlar yerel olarak kaydedildi',
@@ -399,13 +489,12 @@ const TRANSLATIONS = {
     install_instructions: 'Y\u00fcklemek i\u00e7in: Payla\u015f, ard\u0131ndan Ana Ekrana Ekle',
     dismiss: 'Kapat', location: 'Konum', building: 'Bina', level: 'Kat',
     select_building: 'Bina se\u00e7in...', select_level: 'Kat se\u00e7in...',
-    change_location: 'Konumu de\u011fi\u015ftir', your_details: 'Bilgileriniz',
+    change_location: 'Change', your_details: 'Bilgileriniz',
     observer_name: '\u0130sim', main_contractor: 'Ana y\u00fcklenici',
-    company_name: '\u015eirket', select_contractor: 'Se\u00e7in...',
-    observation: 'G\u00f6zlem', observation_type: 'T\u00fcr',
-    safe: 'G\u00fcvenli', unsafe: 'G\u00fcvensiz',
-    category: 'Kategori', subcategory: 'Alt kategori (\u0130ste\u011fe ba\u011fl\u0131)',
-    select_category: 'Kategori se\u00e7in...', select_subcategory: 'Alt kategori se\u00e7in...',
+    select_contractor: 'Se\u00e7in...',
+    observation: 'G\u00f6zlem',
+    category: 'Kategori',
+    select_category: 'Kategori se\u00e7in...',
     description: 'A\u00e7\u0131klama', photo: 'Foto\u011fraf',
     take_photo: 'Foto\u011fraf \u00e7ek', from_gallery: 'Galeri',
     submit: 'G\u00f6zlemi g\u00f6nder', new_report: 'Yeni rapor',
@@ -419,11 +508,22 @@ const TRANSLATIONS = {
     confirm_clear: 'T\u00fcm bekleyen raporlar silinsin mi? Bu i\u015flem geri al\u0131namaz.',
     synced_count: 'rapor senkronize edildi',
     no_endpoint: 'Endpoint yap\u0131land\u0131r\u0131lmam\u0131\u015f. Rapor yerel olarak kaydedildi.',
-    type_to_search: 'Ara...',
     scan_qr: 'QR kodu tara',
     qr_hint: 'Kameray\u0131 konum QR koduna do\u011frultun',
     qr_no_camera: 'Kamera eri\u015fimi mevcut de\u011fil',
     qr_found: 'QR koddan konum ayarland\u0131!',
+    enter_manually: 'Enter manually',
+    history: 'History',
+    history_empty: 'No observations sent yet.',
+    not_set: 'Not set',
+    setup_title: 'Welcome to NNE Safety Observer',
+    setup_subtitle: 'Before you start, please tell us who you are',
+    setup_contractor_label: 'Which main contractor are you working for?',
+    setup_other_contractor: 'Your contractor name',
+    setup_name_label: 'Your name',
+    setup_name_hint: 'Optional — useful if your company rewards safety observations',
+    setup_done: 'Get Started',
+    contractor_not_listed: 'My contractor is not listed',
   },
   uk: {
     status_online: '\u041e\u043d\u043b\u0430\u0439\u043d', status_offline: '\u041e\u0444\u043b\u0430\u0439\u043d — \u0437\u0432\u0456\u0442\u0438 \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043d\u0456 \u043b\u043e\u043a\u0430\u043b\u044c\u043d\u043e',
@@ -431,13 +531,12 @@ const TRANSLATIONS = {
     install_instructions: '\u0429\u043e\u0431 \u0432\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u0442\u0438: \u041f\u043e\u0434\u0456\u043b\u0438\u0442\u0438\u0441\u044f, \u043f\u043e\u0442\u0456\u043c \u0414\u043e\u0434\u0430\u0442\u0438 \u043d\u0430 \u0435\u043a\u0440\u0430\u043d',
     dismiss: '\u0417\u0430\u043a\u0440\u0438\u0442\u0438', location: '\u041c\u0456\u0441\u0446\u0435', building: '\u0411\u0443\u0434\u0456\u0432\u043b\u044f', level: '\u0420\u0456\u0432\u0435\u043d\u044c',
     select_building: '\u041e\u0431\u0435\u0440\u0456\u0442\u044c \u0431\u0443\u0434\u0456\u0432\u043b\u044e...', select_level: '\u041e\u0431\u0435\u0440\u0456\u0442\u044c \u0440\u0456\u0432\u0435\u043d\u044c...',
-    change_location: '\u0417\u043c\u0456\u043d\u0438\u0442\u0438 \u043c\u0456\u0441\u0446\u0435', your_details: '\u0412\u0430\u0448\u0456 \u0434\u0430\u043d\u0456',
+    change_location: 'Change', your_details: '\u0412\u0430\u0448\u0456 \u0434\u0430\u043d\u0456',
     observer_name: "\u0406\u043c'\u044f", main_contractor: '\u0413\u043e\u043b\u043e\u0432\u043d\u0438\u0439 \u043f\u0456\u0434\u0440\u044f\u0434\u043d\u0438\u043a',
-    company_name: '\u041a\u043e\u043c\u043f\u0430\u043d\u0456\u044f', select_contractor: '\u041e\u0431\u0435\u0440\u0456\u0442\u044c...',
-    observation: '\u0421\u043f\u043e\u0441\u0442\u0435\u0440\u0435\u0436\u0435\u043d\u043d\u044f', observation_type: '\u0422\u0438\u043f',
-    safe: '\u0411\u0435\u0437\u043f\u0435\u0447\u043d\u043e', unsafe: '\u041d\u0435\u0431\u0435\u0437\u043f\u0435\u0447\u043d\u043e',
-    category: '\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0456\u044f', subcategory: "\u041f\u0456\u0434\u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0456\u044f (\u041d\u0435\u043e\u0431\u043e\u0432'\u044f\u0437\u043a\u043e\u0432\u043e)",
-    select_category: '\u041e\u0431\u0435\u0440\u0456\u0442\u044c \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0456\u044e...', select_subcategory: '\u041e\u0431\u0435\u0440\u0456\u0442\u044c \u043f\u0456\u0434\u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0456\u044e...',
+    select_contractor: '\u041e\u0431\u0435\u0440\u0456\u0442\u044c...',
+    observation: '\u0421\u043f\u043e\u0441\u0442\u0435\u0440\u0435\u0436\u0435\u043d\u043d\u044f',
+    category: '\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0456\u044f',
+    select_category: '\u041e\u0431\u0435\u0440\u0456\u0442\u044c \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0456\u044e...',
     description: '\u041e\u043f\u0438\u0441', photo: '\u0424\u043e\u0442\u043e',
     take_photo: '\u0417\u0440\u043e\u0431\u0438\u0442\u0438 \u0444\u043e\u0442\u043e', from_gallery: '\u0413\u0430\u043b\u0435\u0440\u0435\u044f',
     submit: '\u041d\u0430\u0434\u0456\u0441\u043b\u0430\u0442\u0438 \u0441\u043f\u043e\u0441\u0442\u0435\u0440\u0435\u0436\u0435\u043d\u043d\u044f', new_report: '\u041d\u043e\u0432\u0438\u0439 \u0437\u0432\u0456\u0442',
@@ -451,11 +550,22 @@ const TRANSLATIONS = {
     confirm_clear: '\u0412\u0438\u0434\u0430\u043b\u0438\u0442\u0438 \u0432\u0441\u0456 \u043e\u0447\u0456\u043a\u0443\u044e\u0447\u0456 \u0437\u0432\u0456\u0442\u0438? \u0426\u0435 \u043d\u0435 \u043c\u043e\u0436\u043d\u0430 \u0441\u043a\u0430\u0441\u0443\u0432\u0430\u0442\u0438.',
     synced_count: '\u0437\u0432\u0456\u0442\u0456\u0432 \u0441\u0438\u043d\u0445\u0440\u043e\u043d\u0456\u0437\u043e\u0432\u0430\u043d\u043e',
     no_endpoint: '\u0415\u043d\u0434\u043f\u043e\u0456\u043d\u0442 \u043d\u0435 \u043d\u0430\u043b\u0430\u0448\u0442\u043e\u0432\u0430\u043d\u0438\u0439. \u0417\u0432\u0456\u0442 \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043d\u043e \u043b\u043e\u043a\u0430\u043b\u044c\u043d\u043e.',
-    type_to_search: '\u0428\u0443\u043a\u0430\u0442\u0438...',
     scan_qr: '\u0421\u043a\u0430\u043d\u0443\u0432\u0430\u0442\u0438 QR-\u043a\u043e\u0434',
     qr_hint: '\u041d\u0430\u0432\u0435\u0434\u0456\u0442\u044c \u043a\u0430\u043c\u0435\u0440\u0443 \u043d\u0430 QR-\u043a\u043e\u0434 \u043c\u0456\u0441\u0446\u044f',
     qr_no_camera: '\u041a\u0430\u043c\u0435\u0440\u0430 \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u0430',
     qr_found: '\u041c\u0456\u0441\u0446\u0435 \u0432\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u043e \u0437 QR-\u043a\u043e\u0434\u0443!',
+    enter_manually: 'Enter manually',
+    history: 'History',
+    history_empty: 'No observations sent yet.',
+    not_set: 'Not set',
+    setup_title: 'Welcome to NNE Safety Observer',
+    setup_subtitle: 'Before you start, please tell us who you are',
+    setup_contractor_label: 'Which main contractor are you working for?',
+    setup_other_contractor: 'Your contractor name',
+    setup_name_label: 'Your name',
+    setup_name_hint: 'Optional — useful if your company rewards safety observations',
+    setup_done: 'Get Started',
+    contractor_not_listed: 'My contractor is not listed',
   },
   bg: {
     status_online: '\u041e\u043d\u043b\u0430\u0439\u043d', status_offline: '\u041e\u0444\u043b\u0430\u0439\u043d — \u0434\u043e\u043a\u043b\u0430\u0434\u0438\u0442\u0435 \u0441\u0430 \u0437\u0430\u043f\u0430\u0437\u0435\u043d\u0438 \u043b\u043e\u043a\u0430\u043b\u043d\u043e',
@@ -463,13 +573,12 @@ const TRANSLATIONS = {
     install_instructions: '\u0417\u0430 \u0438\u043d\u0441\u0442\u0430\u043b\u0438\u0440\u0430\u043d\u0435: \u0421\u043f\u043e\u0434\u0435\u043b\u044f\u043d\u0435, \u0441\u043b\u0435\u0434 \u0442\u043e\u0432\u0430 \u0414\u043e\u0431\u0430\u0432\u0438 \u043a\u044a\u043c \u0435\u043a\u0440\u0430\u043d\u0430',
     dismiss: '\u0417\u0430\u0442\u0432\u043e\u0440\u0438', location: '\u041c\u0435\u0441\u0442\u043e\u043f\u043e\u043b\u043e\u0436\u0435\u043d\u0438\u0435', building: '\u0421\u0433\u0440\u0430\u0434\u0430', level: '\u0415\u0442\u0430\u0436',
     select_building: '\u0418\u0437\u0431\u0435\u0440\u0435\u0442\u0435 \u0441\u0433\u0440\u0430\u0434\u0430...', select_level: '\u0418\u0437\u0431\u0435\u0440\u0435\u0442\u0435 \u0435\u0442\u0430\u0436...',
-    change_location: '\u041f\u0440\u043e\u043c\u0435\u043d\u0438 \u043c\u0435\u0441\u0442\u043e\u043f\u043e\u043b\u043e\u0436\u0435\u043d\u0438\u0435', your_details: '\u0412\u0430\u0448\u0438\u0442\u0435 \u0434\u0430\u043d\u043d\u0438',
+    change_location: 'Change', your_details: '\u0412\u0430\u0448\u0438\u0442\u0435 \u0434\u0430\u043d\u043d\u0438',
     observer_name: '\u0418\u043c\u0435', main_contractor: '\u0413\u043b\u0430\u0432\u0435\u043d \u0438\u0437\u043f\u044a\u043b\u043d\u0438\u0442\u0435\u043b',
-    company_name: '\u041a\u043e\u043c\u043f\u0430\u043d\u0438\u044f', select_contractor: '\u0418\u0437\u0431\u0435\u0440\u0435\u0442\u0435...',
-    observation: '\u041d\u0430\u0431\u043b\u044e\u0434\u0435\u043d\u0438\u0435', observation_type: '\u0422\u0438\u043f',
-    safe: '\u0411\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e', unsafe: '\u041e\u043f\u0430\u0441\u043d\u043e',
-    category: '\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044f', subcategory: '\u041f\u043e\u0434\u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044f (\u041d\u0435\u0437\u0430\u0434\u044a\u043b\u0436\u0438\u0442\u0435\u043b\u043d\u043e)',
-    select_category: '\u0418\u0437\u0431\u0435\u0440\u0435\u0442\u0435 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044f...', select_subcategory: '\u0418\u0437\u0431\u0435\u0440\u0435\u0442\u0435 \u043f\u043e\u0434\u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044f...',
+    select_contractor: '\u0418\u0437\u0431\u0435\u0440\u0435\u0442\u0435...',
+    observation: '\u041d\u0430\u0431\u043b\u044e\u0434\u0435\u043d\u0438\u0435',
+    category: '\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044f',
+    select_category: '\u0418\u0437\u0431\u0435\u0440\u0435\u0442\u0435 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044f...',
     description: '\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435', photo: '\u0421\u043d\u0438\u043c\u043a\u0430',
     take_photo: '\u041d\u0430\u043f\u0440\u0430\u0432\u0438 \u0441\u043d\u0438\u043c\u043a\u0430', from_gallery: '\u0413\u0430\u043b\u0435\u0440\u0438\u044f',
     submit: '\u0418\u0437\u043f\u0440\u0430\u0442\u0438 \u043d\u0430\u0431\u043b\u044e\u0434\u0435\u043d\u0438\u0435', new_report: '\u041d\u043e\u0432 \u0434\u043e\u043a\u043b\u0430\u0434',
@@ -483,11 +592,22 @@ const TRANSLATIONS = {
     confirm_clear: '\u0418\u0437\u0442\u0440\u0438\u0432\u0430\u043d\u0435 \u043d\u0430 \u0432\u0441\u0438\u0447\u043a\u0438 \u0447\u0430\u043a\u0430\u0449\u0438 \u0434\u043e\u043a\u043b\u0430\u0434\u0438? \u041d\u0435 \u043c\u043e\u0436\u0435 \u0434\u0430 \u0441\u0435 \u043e\u0442\u043c\u0435\u043d\u0438.',
     synced_count: '\u0434\u043e\u043a\u043b\u0430\u0434\u0438 \u0441\u0438\u043d\u0445\u0440\u043e\u043d\u0438\u0437\u0438\u0440\u0430\u043d\u0438',
     no_endpoint: '\u041d\u0435 \u0435 \u043a\u043e\u043d\u0444\u0438\u0433\u0443\u0440\u0438\u0440\u0430\u043d \u0435\u043d\u0434\u043f\u043e\u0439\u043d\u0442. \u0414\u043e\u043a\u043b\u0430\u0434\u044a\u0442 \u0435 \u0437\u0430\u043f\u0430\u0437\u0435\u043d \u043b\u043e\u043a\u0430\u043b\u043d\u043e.',
-    type_to_search: '\u0422\u044a\u0440\u0441\u0435\u043d\u0435...',
     scan_qr: '\u0421\u043a\u0430\u043d\u0438\u0440\u0430\u0439 QR \u043a\u043e\u0434',
     qr_hint: '\u041d\u0430\u0441\u043e\u0447\u0435\u0442\u0435 \u043a\u0430\u043c\u0435\u0440\u0430\u0442\u0430 \u043a\u044a\u043c QR \u043a\u043e\u0434',
     qr_no_camera: '\u041a\u0430\u043c\u0435\u0440\u0430\u0442\u0430 \u043d\u0435 \u0435 \u0434\u043e\u0441\u0442\u044a\u043f\u043d\u0430',
     qr_found: '\u041c\u0435\u0441\u0442\u043e\u043f\u043e\u043b\u043e\u0436\u0435\u043d\u0438\u0435 \u0437\u0430\u0434\u0430\u0434\u0435\u043d\u043e \u043e\u0442 QR \u043a\u043e\u0434!',
+    enter_manually: 'Enter manually',
+    history: 'History',
+    history_empty: 'No observations sent yet.',
+    not_set: 'Not set',
+    setup_title: 'Welcome to NNE Safety Observer',
+    setup_subtitle: 'Before you start, please tell us who you are',
+    setup_contractor_label: 'Which main contractor are you working for?',
+    setup_other_contractor: 'Your contractor name',
+    setup_name_label: 'Your name',
+    setup_name_hint: 'Optional — useful if your company rewards safety observations',
+    setup_done: 'Get Started',
+    contractor_not_listed: 'My contractor is not listed',
   },
   lv: {
     status_online: 'Tie\u0161saist\u0113', status_offline: 'Bezsaist\u0113 — zi\u0146ojumi saglab\u0101ti lok\u0101li',
@@ -495,13 +615,12 @@ const TRANSLATIONS = {
     install_instructions: 'Lai instal\u0113tu: nospiediet Dal\u012bties, tad Pievienot ekr\u0101nam',
     dismiss: 'Noraid\u012bt', location: 'Atra\u0161an\u0101s vieta', building: '\u0112ka', level: 'St\u0101vs',
     select_building: 'Izv\u0113lieties \u0113ku...', select_level: 'Izv\u0113lieties st\u0101vu...',
-    change_location: 'Main\u012bt vietu', your_details: 'J\u016bsu dati',
+    change_location: 'Change', your_details: 'J\u016bsu dati',
     observer_name: 'V\u0101rds', main_contractor: 'Galvenais uz\u0146\u0113m\u0113js',
-    company_name: 'Uz\u0146\u0113mums', select_contractor: 'Izv\u0113lieties...',
-    observation: 'Nov\u0113rojums', observation_type: 'Veids',
-    safe: 'Dro\u0161i', unsafe: 'Nedro\u0161i',
-    category: 'Kategorija', subcategory: 'Apak\u0161kategorija (Neoblig\u0101ti)',
-    select_category: 'Izv\u0113lieties kategoriju...', select_subcategory: 'Izv\u0113lieties apak\u0161kategoriju...',
+    select_contractor: 'Izv\u0113lieties...',
+    observation: 'Nov\u0113rojums',
+    category: 'Kategorija',
+    select_category: 'Izv\u0113lieties kategoriju...',
     description: 'Apraksts', photo: 'Foto',
     take_photo: 'Uz\u0146emt foto', from_gallery: 'Galerija',
     submit: 'Iesniegt nov\u0113rojumu', new_report: 'Jauns zi\u0146ojums',
@@ -515,11 +634,22 @@ const TRANSLATIONS = {
     confirm_clear: 'Dz\u0113st visus gaido\u0161os zi\u0146ojumus? To nevar atsaukt.',
     synced_count: 'zi\u0146ojumi sinhroniz\u0113ti',
     no_endpoint: 'Nav konfigur\u0113ts galapunkts. Zi\u0146ojums saglab\u0101ts lok\u0101li.',
-    type_to_search: 'Mekl\u0113t...',
     scan_qr: 'Sken\u0113t QR kodu',
     qr_hint: 'Pav\u0113rsiet kameru uz QR kodu',
     qr_no_camera: 'Kamera nav pieejama',
     qr_found: 'Vieta iestat\u012bta no QR koda!',
+    enter_manually: 'Enter manually',
+    history: 'History',
+    history_empty: 'No observations sent yet.',
+    not_set: 'Not set',
+    setup_title: 'Welcome to NNE Safety Observer',
+    setup_subtitle: 'Before you start, please tell us who you are',
+    setup_contractor_label: 'Which main contractor are you working for?',
+    setup_other_contractor: 'Your contractor name',
+    setup_name_label: 'Your name',
+    setup_name_hint: 'Optional — useful if your company rewards safety observations',
+    setup_done: 'Get Started',
+    contractor_not_listed: 'My contractor is not listed',
   },
   ga: {
     status_online: 'Ar l\u00edne', status_offline: 'As l\u00edne — tuairisc\u00ed s\u00e1bh\u00e1ilte go h\u00e1iti\u00fail',
@@ -527,13 +657,12 @@ const TRANSLATIONS = {
     install_instructions: 'Le suit\u00e9\u00e1il: br\u00faigh Comhroinn ansin Cuir le Sc\u00e1ile\u00e1n Baile',
     dismiss: 'D\u00fan', location: 'Su\u00edomh', building: 'Foirgneamh', level: 'Leibh\u00e9al',
     select_building: 'Roghnaigh foirgneamh...', select_level: 'Roghnaigh leibh\u00e9al...',
-    change_location: 'Athraigh su\u00edomh', your_details: 'Do shonra\u00ed',
+    change_location: 'Change', your_details: 'Do shonra\u00ed',
     observer_name: 'Ainm', main_contractor: 'Pr\u00edomhchonraitheoir',
-    company_name: 'Comhlacht', select_contractor: 'Roghnaigh...',
-    observation: 'Breathn\u00fa', observation_type: 'Cine\u00e1l',
-    safe: 'S\u00e1bh\u00e1ilte', unsafe: 'Cont\u00fairteach',
-    category: 'Catag\u00f3ir', subcategory: 'Fochatag\u00f3ir (Roghnach)',
-    select_category: 'Roghnaigh catag\u00f3ir...', select_subcategory: 'Roghnaigh fochatag\u00f3ir...',
+    select_contractor: 'Roghnaigh...',
+    observation: 'Breathn\u00fa',
+    category: 'Catag\u00f3ir',
+    select_category: 'Roghnaigh catag\u00f3ir...',
     description: 'Cur s\u00edos', photo: 'Grianghraf',
     take_photo: 'T\u00f3g grianghraf', from_gallery: 'Gailear\u00e1\u00ed',
     submit: 'Seol breathn\u00fa', new_report: 'Tuairisc nua',
@@ -547,11 +676,22 @@ const TRANSLATIONS = {
     confirm_clear: 'Scrios gach tuairisc ar feitheamh? N\u00ed f\u00e9idir \u00e9 seo a chur ar ceal.',
     synced_count: 'tuairisc\u00ed sioncr\u00f3naithe',
     no_endpoint: 'N\u00edl aon endpoint cumraithe. Tuairisc s\u00e1bh\u00e1ilte go h\u00e1iti\u00fail.',
-    type_to_search: 'Cuardaigh...',
     scan_qr: 'Scan c\u00f3d QR',
     qr_hint: 'D\u00edrigh an ceamara ar ch\u00f3d QR su\u00edmh',
     qr_no_camera: 'N\u00edl rochtain ceamara ar f\u00e1il',
     qr_found: 'Su\u00edomh socraithe \u00f3n gc\u00f3d QR!',
+    enter_manually: 'Enter manually',
+    history: 'History',
+    history_empty: 'No observations sent yet.',
+    not_set: 'Not set',
+    setup_title: 'Welcome to NNE Safety Observer',
+    setup_subtitle: 'Before you start, please tell us who you are',
+    setup_contractor_label: 'Which main contractor are you working for?',
+    setup_other_contractor: 'Your contractor name',
+    setup_name_label: 'Your name',
+    setup_name_hint: 'Optional — useful if your company rewards safety observations',
+    setup_done: 'Get Started',
+    contractor_not_listed: 'My contractor is not listed',
   },
 };
 
@@ -565,15 +705,17 @@ function t(key) {
 let currentLang = localStorage.getItem('appLang') || 'en';
 let currentBuilding = '';
 let currentLevel = '';
-let observationType = '';
 let photosData = []; // Array of base64 strings for multiple photos
 let db = null;
 
 // ===== IndexedDB ==============================================
 const DB_NAME = 'm3-safety-observer';
-const DB_VERSION = 2; // Bumped from 1 to add settings store
+const DB_VERSION = 3; // v2: settings store, v3: history store
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
+const HISTORY_STORE = 'history';
+const MAX_HISTORY = 50;
+const HISTORY_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000; // 1 year
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -585,6 +727,9 @@ function openDB() {
       }
       if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
         db.createObjectStore(SETTINGS_STORE, { keyPath: 'key' });
+      }
+      if (!db.objectStoreNames.contains(HISTORY_STORE)) {
+        db.createObjectStore(HISTORY_STORE, { keyPath: 'id' });
       }
     };
     request.onsuccess = (e) => {
@@ -628,23 +773,79 @@ function getCookie(name) {
   return match ? decodeURIComponent(match[2]) : null;
 }
 
-function saveIdentity(name, contractor, company) {
+function saveIdentity(name, contractor, contractorOther) {
   // Save to cookies as persistent backup
   setCookie('savedName', name, 365);
   setCookie('savedContractor', contractor, 365);
-  setCookie('savedCompany', company, 365);
-  return Promise.all([
+  if (contractorOther !== undefined) setCookie('savedContractorOther', contractorOther, 365);
+  const promises = [
     saveSetting('savedName', name),
     saveSetting('savedContractor', contractor),
-    saveSetting('savedCompany', company),
-  ]);
+  ];
+  if (contractorOther !== undefined) promises.push(saveSetting('savedContractorOther', contractorOther));
+  return Promise.all(promises);
 }
 
 async function loadIdentity() {
   const name = await getSetting('savedName');
   const contractor = await getSetting('savedContractor');
-  const company = await getSetting('savedCompany');
-  return { name, contractor, company };
+  const contractorOther = await getSetting('savedContractorOther');
+  return { name, contractor, contractorOther };
+}
+
+// ===== HISTORY (sent observations log) =========================
+function addToHistory(observation) {
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(HISTORY_STORE, 'readwrite');
+      const entry = {
+        id: observation.id,
+        datetime_created: observation.datetime_created || observation.timestamp,
+        building: observation.building,
+        level: observation.level,
+        safetyCategory: observation.safetyCategory || '',
+        description: observation.description,
+        mainContractor: observation.mainContractor || '',
+      };
+      tx.objectStore(HISTORY_STORE).put(entry);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve(); // Never block sync on history failure
+    } catch (e) {
+      resolve();
+    }
+  });
+}
+
+function getAllHistory() {
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(HISTORY_STORE, 'readonly');
+      const request = tx.objectStore(HISTORY_STORE).getAll();
+      request.onsuccess = () => {
+        const all = request.result || [];
+        all.sort((a, b) => (b.datetime_created || '').localeCompare(a.datetime_created || ''));
+        resolve(all.slice(0, MAX_HISTORY));
+      };
+      request.onerror = () => resolve([]);
+    } catch (e) {
+      resolve([]);
+    }
+  });
+}
+
+function pruneOldHistory() {
+  try {
+    const tx = db.transaction(HISTORY_STORE, 'readwrite');
+    const store = tx.objectStore(HISTORY_STORE);
+    const request = store.getAll();
+    request.onsuccess = () => {
+      const cutoff = Date.now() - HISTORY_MAX_AGE_MS;
+      (request.result || []).forEach(entry => {
+        const created = new Date(entry.datetime_created).getTime();
+        if (created < cutoff) store.delete(entry.id);
+      });
+    };
+  } catch (e) {}
 }
 
 function addObservation(observation) {
@@ -786,8 +987,10 @@ async function syncPending() {
       try {
         const payload = { ...obs };
         delete payload.status; // Don't send internal status field
+        payload.datetime_sent = new Date().toISOString();
 
         const result = await postObservation(url, payload);
+        await addToHistory(obs); // Save text-only copy to history before deleting
         await deleteObservation(obs.id);
         syncedCount++;
       } catch (err) {
@@ -945,6 +1148,11 @@ function populateContractorSelect(selectId) {
     opt.textContent = c;
     sel.appendChild(opt);
   });
+  // Add "My contractor is not listed" as last option
+  const otherOpt = document.createElement('option');
+  otherOpt.value = '__other__';
+  otherOpt.textContent = t('contractor_not_listed');
+  sel.appendChild(otherOpt);
 }
 
 function populateCategorySelect() {
@@ -958,68 +1166,6 @@ function populateCategorySelect() {
   });
 }
 
-function populateSubcategorySelect(categoryName) {
-  const sel = document.getElementById('subCategory');
-  while (sel.options.length > 1) sel.remove(1);
-
-  const cat = CONFIG.CATEGORIES.find(c => c.name === categoryName);
-  if (cat && cat.subs.length > 0) {
-    sel.disabled = false;
-    cat.subs.forEach(sub => {
-      const opt = document.createElement('option');
-      opt.value = sub;
-      opt.textContent = sub;
-      sel.appendChild(opt);
-    });
-  } else {
-    sel.disabled = true;
-  }
-}
-
-// ===== SEARCHABLE COMPANY DROPDOWN ============================
-function initCompanyDropdown() {
-  const input = document.getElementById('companyName');
-  const dropdown = document.getElementById('companyDropdown');
-
-  input.setAttribute('placeholder', t('type_to_search'));
-
-  input.addEventListener('focus', () => {
-    showCompanyDropdown(input.value);
-  });
-
-  input.addEventListener('input', () => {
-    showCompanyDropdown(input.value);
-  });
-
-  input.addEventListener('blur', () => {
-    // Delay to allow click on dropdown item
-    setTimeout(() => dropdown.classList.remove('open'), 200);
-  });
-
-  function showCompanyDropdown(filter) {
-    dropdown.innerHTML = '';
-    const filtered = CONFIG.COMPANIES.filter(c =>
-      c.toLowerCase().includes((filter || '').toLowerCase())
-    );
-    if (filtered.length === 0) {
-      dropdown.classList.remove('open');
-      return;
-    }
-    filtered.forEach(c => {
-      const div = document.createElement('div');
-      div.className = 'dropdown-item';
-      div.textContent = c;
-      div.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        input.value = c;
-        dropdown.classList.remove('open');
-      });
-      dropdown.appendChild(div);
-    });
-    dropdown.classList.add('open');
-  }
-}
-
 // ===== QR / URL PARAMS ========================================
 function parseUrlParams() {
   const params = new URLSearchParams(window.location.search);
@@ -1029,18 +1175,31 @@ function parseUrlParams() {
   if (building) {
     currentBuilding = building.toUpperCase();
     document.getElementById('buildingValue').textContent = currentBuilding;
+    document.getElementById('buildingSelect').value = currentBuilding;
+    populateLevelSelect(currentBuilding);
   }
   if (level) {
     currentLevel = level.toUpperCase();
     document.getElementById('levelValue').textContent = currentLevel;
+    document.getElementById('levelSelect').value = currentLevel;
   }
 
-  if (!building && !level) {
-    // No QR params — show manual selection
-    document.getElementById('locationManual').classList.remove('hidden');
-    document.getElementById('buildingValue').textContent = '--';
-    document.getElementById('levelValue').textContent = '--';
+  if (building || level) {
+    showLocationSet();
   }
+  // else: leave QR prompt visible (default state)
+}
+
+function showLocationSet() {
+  document.getElementById('locationQrPrompt').classList.add('hidden');
+  document.getElementById('locationSet').classList.remove('hidden');
+  document.getElementById('locationManual').classList.add('hidden');
+}
+
+function showLocationManual() {
+  document.getElementById('locationQrPrompt').classList.add('hidden');
+  document.getElementById('locationSet').classList.add('hidden');
+  document.getElementById('locationManual').classList.remove('hidden');
 }
 
 // ===== QR SCANNER =============================================
@@ -1147,7 +1306,6 @@ function handleQrResult(rawValue) {
   if (building) {
     currentBuilding = building.toUpperCase();
     document.getElementById('buildingValue').textContent = currentBuilding;
-    // Also set the dropdown
     document.getElementById('buildingSelect').value = currentBuilding;
     populateLevelSelect(currentBuilding);
   }
@@ -1157,13 +1315,8 @@ function handleQrResult(rawValue) {
     document.getElementById('levelSelect').value = currentLevel;
   }
 
-  // Show manual section so user sees/can adjust the values
-  document.getElementById('locationManual').classList.remove('hidden');
-
-  // Brief visual feedback
   if (building || level) {
-    const hint = document.querySelector('.qr-hint');
-    if (hint) hint.textContent = t('qr_found');
+    showLocationSet();
   }
 }
 
@@ -1205,7 +1358,7 @@ function handlePhoto(file) {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, w, h);
 
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
       photosData.push(dataUrl);
       renderPhotoGrid();
     };
@@ -1244,13 +1397,9 @@ function renderPhotoGrid() {
 function validateForm() {
   const building = currentBuilding || document.getElementById('buildingSelect').value;
   const level = currentLevel || document.getElementById('levelSelect').value;
-  const name = document.getElementById('observerName').value.trim();
-  const contractor = document.getElementById('mainContractor').value;
-  const company = document.getElementById('companyName').value.trim();
-  const category = document.getElementById('safetyCategory').value;
   const description = document.getElementById('description').value.trim();
 
-  if (!building || !level || !name || !contractor || !company || !observationType || !category || !description) {
+  if (!building || !level || !description) {
     return false;
   }
   return true;
@@ -1266,27 +1415,31 @@ async function submitObservation() {
   const building = currentBuilding || document.getElementById('buildingSelect').value;
   const level = currentLevel || document.getElementById('levelSelect').value;
 
+  // Get contractor from saved settings (set during first-time setup)
+  const savedContractor = await getSetting('savedContractor') || '';
+  const savedContractorOther = await getSetting('savedContractorOther') || '';
+  const savedObserverName = await getSetting('savedName') || '';
+
+  let mainContractorValue = savedContractor;
+  if (savedContractor === '__other__' && savedContractorOther) {
+    mainContractorValue = 'Operator didnt know main contractor. his direct subcontractor is: ' + savedContractorOther;
+  }
+
   const observation = {
     id: uuid(),
-    timestamp: new Date().toISOString(),
+    datetime_created: new Date().toISOString(),
     project: CONFIG.PROJECT,
     building: building,
     level: level,
-    mainContractor: document.getElementById('mainContractor').value,
-    companyName: document.getElementById('companyName').value.trim(),
-    observerName: document.getElementById('observerName').value.trim(),
-    observationType: observationType,
-    safetyCategory: document.getElementById('safetyCategory').value,
-    subCategory: document.getElementById('subCategory').value || '',
+    mainContractor: mainContractorValue,
+    observerName: savedObserverName,
+    safetyCategory: document.getElementById('safetyCategory').value || '',
     description: document.getElementById('description').value.trim(),
     photo: photosData.length > 0 ? photosData[0] : '',
     photos: photosData.length > 0 ? photosData : [],
     submittedLanguage: currentLang,
     status: 'pending', // Internal — not sent to endpoint
   };
-
-  // Save identity for next time (IndexedDB persists better than localStorage)
-  saveIdentity(observation.observerName, observation.mainContractor, observation.companyName);
 
   try {
     await addObservation(observation);
@@ -1357,14 +1510,8 @@ function hideModal() {
 
 // ===== RESET FORM =============================================
 function resetForm() {
-  // Keep identity fields (name, contractor, company) — they're saved
-  observationType = '';
   photosData = [];
-  document.getElementById('btnSafe').className = 'toggle-btn';
-  document.getElementById('btnUnsafe').className = 'toggle-btn';
   document.getElementById('safetyCategory').value = '';
-  document.getElementById('subCategory').value = '';
-  document.getElementById('subCategory').disabled = true;
   document.getElementById('description').value = '';
   document.getElementById('photoGrid').innerHTML = '';
   document.getElementById('cameraInput').value = '';
@@ -1375,21 +1522,25 @@ function resetForm() {
 async function openSettings() {
   document.getElementById('settingsEndpoint').value = CONFIG.ENDPOINT_URL || '';
 
-  // Populate contractor dropdown in settings
-  populateContractorSelect('settingsContractor');
-
-  // Load identity from IndexedDB
+  // Load identity for read-only display
   try {
     const identity = await loadIdentity();
-    document.getElementById('settingsName').value = identity.name || '';
-    document.getElementById('settingsCompany').value = identity.company || '';
-    document.getElementById('settingsContractor').value = identity.contractor || '';
+    const contractorDisplay = document.getElementById('settingsContractorDisplay');
+    if (identity.contractor === '__other__') {
+      contractorDisplay.textContent = identity.contractorOther || '--';
+    } else {
+      contractorDisplay.textContent = identity.contractor || '--';
+    }
+    document.getElementById('settingsNameDisplay').textContent = identity.name || t('not_set');
   } catch (e) {
-    // Fallback to current form values
-    document.getElementById('settingsName').value = document.getElementById('observerName').value;
-    document.getElementById('settingsCompany').value = document.getElementById('companyName').value;
-    document.getElementById('settingsContractor').value = document.getElementById('mainContractor').value;
+    document.getElementById('settingsContractorDisplay').textContent = '--';
+    document.getElementById('settingsNameDisplay').textContent = t('not_set');
   }
+
+  // Reset to read-only state
+  document.getElementById('settingsReadOnly').classList.remove('hidden');
+  document.getElementById('settingsEditable').classList.add('hidden');
+  document.getElementById('settingsSave').classList.add('hidden');
 
   document.getElementById('settingsScreen').classList.add('visible');
 }
@@ -1398,16 +1549,36 @@ function closeSettings() {
   document.getElementById('settingsScreen').classList.remove('visible');
 }
 
+async function enableSettingsEdit() {
+  document.getElementById('settingsReadOnly').classList.add('hidden');
+  document.getElementById('settingsEditable').classList.remove('hidden');
+  document.getElementById('settingsSave').classList.remove('hidden');
+
+  // Populate contractor dropdown
+  populateContractorSelect('settingsContractor');
+
+  // Load current values into editable fields
+  try {
+    const identity = await loadIdentity();
+    document.getElementById('settingsName').value = identity.name || '';
+    document.getElementById('settingsContractor').value = identity.contractor || '';
+    if (identity.contractor === '__other__') {
+      document.getElementById('settingsOtherGroup').classList.remove('hidden');
+      document.getElementById('settingsContractorOther').value = identity.contractorOther || '';
+    } else {
+      document.getElementById('settingsOtherGroup').classList.add('hidden');
+    }
+  } catch (e) {}
+}
+
 function saveSettings() {
   const name = document.getElementById('settingsName').value.trim();
   const contractor = document.getElementById('settingsContractor').value;
-  const company = document.getElementById('settingsCompany').value.trim();
+  const contractorOther = document.getElementById('settingsContractorOther').value.trim();
   const endpoint = document.getElementById('settingsEndpoint').value.trim();
 
-  // Save identity to IndexedDB (persists better than localStorage)
-  if (name || contractor || company) {
-    saveIdentity(name, contractor, company);
-  }
+  // Save identity to IndexedDB + cookies
+  saveIdentity(name, contractor, contractorOther);
 
   if (endpoint) {
     localStorage.setItem('powerAutomateUrl', endpoint);
@@ -1416,12 +1587,84 @@ function saveSettings() {
     sendEndpointToSW();
   }
 
-  // Update main form with saved values
-  document.getElementById('observerName').value = name;
-  document.getElementById('mainContractor').value = contractor;
-  document.getElementById('companyName').value = company;
-
   closeSettings();
+}
+
+// ===== HISTORY ================================================
+async function openHistory() {
+  const list = document.getElementById('historyList');
+  const entries = await getAllHistory();
+
+  if (entries.length === 0) {
+    list.innerHTML = '<p class="history-empty">' + t('history_empty') + '</p>';
+  } else {
+    list.innerHTML = entries.map(e => {
+      const date = new Date(e.datetime_created).toLocaleString();
+      return '<div class="history-item">' +
+        '<div class="history-date">' + date + '</div>' +
+        '<div class="history-location">' + (e.building || '--') + ' / ' + (e.level || '--') + '</div>' +
+        (e.safetyCategory ? '<div class="history-category">' + e.safetyCategory + '</div>' : '') +
+        '<div class="history-desc">' + e.description + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  document.getElementById('historyScreen').classList.add('visible');
+}
+
+function closeHistory() {
+  document.getElementById('historyScreen').classList.remove('visible');
+}
+
+// ===== FIRST-TIME SETUP =======================================
+function showSetupOverlay() {
+  // Populate contractor dropdown
+  const sel = document.getElementById('setupContractor');
+  while (sel.options.length > 1) sel.remove(1);
+  CONFIG.MAIN_CONTRACTORS.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    sel.appendChild(opt);
+  });
+  const otherOpt = document.createElement('option');
+  otherOpt.value = '__other__';
+  otherOpt.textContent = t('contractor_not_listed');
+  sel.appendChild(otherOpt);
+
+  // Show/hide "other" text input on change
+  sel.addEventListener('change', () => {
+    const otherGroup = document.getElementById('setupOtherGroup');
+    if (sel.value === '__other__') {
+      otherGroup.classList.remove('hidden');
+    } else {
+      otherGroup.classList.add('hidden');
+    }
+  });
+
+  document.getElementById('setupOverlay').classList.add('visible');
+}
+
+async function completeSetup() {
+  const contractor = document.getElementById('setupContractor').value;
+  const contractorOther = document.getElementById('setupContractorOther').value.trim();
+  const name = document.getElementById('setupName').value.trim();
+
+  if (!contractor) {
+    alert(t('validation_error'));
+    return;
+  }
+  if (contractor === '__other__' && !contractorOther) {
+    alert(t('validation_error'));
+    return;
+  }
+
+  // Save to IndexedDB + cookies
+  await saveIdentity(name, contractor, contractorOther);
+  await saveSetting('setupComplete', true);
+  setCookie('setupComplete', 'true', 365);
+
+  document.getElementById('setupOverlay').classList.remove('visible');
 }
 
 // ===== INSTALL BANNER (iOS detection) =========================
@@ -1571,30 +1814,10 @@ async function init() {
 
   // Populate dropdowns
   populateBuildingSelect();
-  populateContractorSelect('mainContractor');
   populateCategorySelect();
-  initCompanyDropdown();
 
-  // Restore saved identity: IndexedDB → localStorage → cookies (3-layer fallback)
-  let restoredName = '', restoredContractor = '', restoredCompany = '';
-  try {
-    const identity = await loadIdentity();
-    restoredName = identity.name || '';
-    restoredContractor = identity.contractor || '';
-    restoredCompany = identity.company || '';
-  } catch (e) {}
-  // localStorage fallback (migration from old version)
-  if (!restoredName) restoredName = localStorage.getItem('savedName') || '';
-  if (!restoredContractor) restoredContractor = localStorage.getItem('savedContractor') || '';
-  if (!restoredCompany) restoredCompany = localStorage.getItem('savedCompany') || '';
-  // Cookie fallback (most persistent — survives storage eviction)
-  if (!restoredName) restoredName = getCookie('savedName') || '';
-  if (!restoredContractor) restoredContractor = getCookie('savedContractor') || '';
-  if (!restoredCompany) restoredCompany = getCookie('savedCompany') || '';
-
-  if (restoredName) document.getElementById('observerName').value = restoredName;
-  if (restoredContractor) document.getElementById('mainContractor').value = restoredContractor;
-  if (restoredCompany) document.getElementById('companyName').value = restoredCompany;
+  // Prune old history entries
+  pruneOldHistory();
 
   // Status
   updateStatus();
@@ -1664,11 +1887,14 @@ async function init() {
     setLanguage(e.target.value);
   });
 
-  // Location: toggle manual edit
-  document.getElementById('toggleLocationEdit').addEventListener('click', (e) => {
+  // Location: QR-first — manual entry links
+  document.getElementById('manualLocationLink').addEventListener('click', (e) => {
     e.preventDefault();
-    const manual = document.getElementById('locationManual');
-    manual.classList.toggle('hidden');
+    showLocationManual();
+  });
+  document.getElementById('changeLocationLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    showLocationManual();
   });
 
   // Location: building select changes level options
@@ -1682,24 +1908,7 @@ async function init() {
   document.getElementById('levelSelect').addEventListener('change', (e) => {
     currentLevel = e.target.value;
     document.getElementById('levelValue').textContent = currentLevel || '--';
-  });
-
-  // Safe/Unsafe toggle
-  document.getElementById('btnSafe').addEventListener('click', () => {
-    observationType = 'Safe';
-    document.getElementById('btnSafe').className = 'toggle-btn active-safe';
-    document.getElementById('btnUnsafe').className = 'toggle-btn';
-  });
-
-  document.getElementById('btnUnsafe').addEventListener('click', () => {
-    observationType = 'Unsafe';
-    document.getElementById('btnUnsafe').className = 'toggle-btn active-unsafe';
-    document.getElementById('btnSafe').className = 'toggle-btn';
-  });
-
-  // Category -> subcategory
-  document.getElementById('safetyCategory').addEventListener('change', (e) => {
-    populateSubcategorySelect(e.target.value);
+    if (currentBuilding && currentLevel) showLocationSet();
   });
 
   // Photo: camera
@@ -1728,7 +1937,25 @@ async function init() {
   // Settings
   document.getElementById('settingsBtn').addEventListener('click', openSettings);
   document.getElementById('settingsBack').addEventListener('click', closeSettings);
+  document.getElementById('settingsEditBtn').addEventListener('click', enableSettingsEdit);
   document.getElementById('settingsSave').addEventListener('click', saveSettings);
+
+  // Settings contractor "other" toggle
+  document.getElementById('settingsContractor').addEventListener('change', (e) => {
+    const otherGroup = document.getElementById('settingsOtherGroup');
+    if (e.target.value === '__other__') {
+      otherGroup.classList.remove('hidden');
+    } else {
+      otherGroup.classList.add('hidden');
+    }
+  });
+
+  // History
+  document.getElementById('historyBtn').addEventListener('click', openHistory);
+  document.getElementById('historyBack').addEventListener('click', closeHistory);
+
+  // First-time setup
+  document.getElementById('setupDoneBtn').addEventListener('click', completeSetup);
 
   document.getElementById('settingsForceSync').addEventListener('click', () => {
     forceSyncWithFeedback();
@@ -1804,6 +2031,17 @@ async function init() {
       showPendingNotification(pending.length);
     }
   } catch (e) {}
+
+  // First-time setup check — show overlay if user hasn't completed setup
+  // Shown AFTER sync engine is initialized so background sync still works underneath
+  let setupDone = await getSetting('setupComplete');
+  if (!setupDone) {
+    // Check cookie fallback
+    setupDone = getCookie('setupComplete') === 'true';
+  }
+  if (!setupDone) {
+    showSetupOverlay();
+  }
 }
 
 // Boot

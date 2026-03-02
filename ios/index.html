@@ -39,6 +39,9 @@
         <option value="lv">LV</option>
         <option value="ga">GA</option>
       </select>
+      <button id="historyBtn" class="settings-btn" aria-label="History">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </button>
       <button id="settingsBtn" class="settings-btn" aria-label="Settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.32 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
@@ -64,19 +67,35 @@
   <!-- ===== Main Content ===== -->
   <main class="app-main">
 
-    <!-- Location Card -->
+    <!-- Location Card (QR-first) -->
     <div class="card location-card">
       <div class="card-title" data-i18n="location">Location</div>
-      <div id="locationDisplay" class="location-display">
-        <div class="location-value">
-          <div class="label" data-i18n="building">Building</div>
-          <div class="value" id="buildingValue">--</div>
-        </div>
-        <div class="location-value">
-          <div class="label" data-i18n="level">Level</div>
-          <div class="value" id="levelValue">--</div>
-        </div>
+
+      <!-- QR-First: Scan button is prominent -->
+      <div id="locationQrPrompt" class="location-qr-prompt">
+        <button type="button" class="scan-qr-btn-large" id="scanQrBtn">
+          <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><line x1="20" y1="14" x2="20" y2="14.01"/><line x1="20" y1="20" x2="20" y2="20.01"/><line x1="14" y1="20" x2="14" y2="20.01"/></svg>
+          <span data-i18n="scan_qr">Scan QR Code</span>
+        </button>
+        <a id="manualLocationLink" class="manual-location-link" data-i18n="enter_manually">Enter manually</a>
       </div>
+
+      <!-- Set location display (shown after QR scan or manual entry) -->
+      <div id="locationSet" class="location-set hidden">
+        <div class="location-display">
+          <div class="location-value">
+            <div class="label" data-i18n="building">Building</div>
+            <div class="value" id="buildingValue">--</div>
+          </div>
+          <div class="location-value">
+            <div class="label" data-i18n="level">Level</div>
+            <div class="value" id="levelValue">--</div>
+          </div>
+        </div>
+        <a id="changeLocationLink" class="change-location-link" data-i18n="change_location">Change</a>
+      </div>
+
+      <!-- Manual entry (hidden by default) -->
       <div id="locationManual" class="location-manual hidden">
         <div class="form-group">
           <select id="buildingSelect">
@@ -89,67 +108,17 @@
           </select>
         </div>
       </div>
-      <div class="location-manual">
-        <a id="toggleLocationEdit" data-i18n="change_location">Change location</a>
-      </div>
-      <button type="button" class="scan-qr-btn" id="scanQrBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><line x1="20" y1="14" x2="20" y2="14.01"/><line x1="20" y1="20" x2="20" y2="20.01"/><line x1="14" y1="20" x2="14" y2="20.01"/></svg>
-        <span data-i18n="scan_qr">Scan QR Code</span>
-      </button>
-    </div>
-
-    <!-- Identity Card -->
-    <div class="card">
-      <div class="card-title" data-i18n="your_details">Your Details</div>
-      <div class="form-group">
-        <label data-i18n="observer_name">Name <span class="required">*</span></label>
-        <input type="text" id="observerName" autocomplete="name">
-      </div>
-      <div class="form-group">
-        <label data-i18n="main_contractor">Main Contractor <span class="required">*</span></label>
-        <select id="mainContractor">
-          <option value="" data-i18n="select_contractor">Select...</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label data-i18n="company_name">Company <span class="required">*</span></label>
-        <div class="search-dropdown">
-          <input type="text" id="companyName" autocomplete="organization" placeholder="">
-          <div id="companyDropdown" class="dropdown-list"></div>
-        </div>
-      </div>
     </div>
 
     <!-- Observation Card -->
     <div class="card">
       <div class="card-title" data-i18n="observation">Observation</div>
 
-      <!-- Safe / Unsafe Toggle -->
+      <!-- Category (optional) -->
       <div class="form-group">
-        <label data-i18n="observation_type">Type <span class="required">*</span></label>
-        <div class="toggle-group">
-          <button type="button" class="toggle-btn" id="btnSafe" data-value="Safe">
-            <span data-i18n="safe">Safe</span>
-          </button>
-          <button type="button" class="toggle-btn" id="btnUnsafe" data-value="Unsafe">
-            <span data-i18n="unsafe">Unsafe</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Category -->
-      <div class="form-group">
-        <label data-i18n="category">Category <span class="required">*</span></label>
+        <label data-i18n="category">Category</label>
         <select id="safetyCategory">
           <option value="" data-i18n="select_category">Select category...</option>
-        </select>
-      </div>
-
-      <!-- Subcategory (Optional) -->
-      <div class="form-group" id="subCategoryGroup">
-        <label data-i18n="subcategory">Subcategory (Optional)</label>
-        <select id="subCategory">
-          <option value="" data-i18n="select_subcategory">Select subcategory...</option>
         </select>
       </div>
 
@@ -205,18 +174,39 @@
     </div>
     <div class="settings-body">
       <div class="settings-section">
-        <h3 data-i18n="saved_identity">Saved Identity</h3>
-        <div class="form-group">
-          <label data-i18n="observer_name">Name</label>
-          <input type="text" id="settingsName">
+        <div class="settings-section-header">
+          <h3 data-i18n="saved_identity">Saved Identity</h3>
+          <button id="settingsEditBtn" class="settings-edit-btn" aria-label="Edit">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
         </div>
-        <div class="form-group">
-          <label data-i18n="main_contractor">Main Contractor</label>
-          <select id="settingsContractor"></select>
+        <!-- Read-only display (default) -->
+        <div id="settingsReadOnly" class="settings-readonly">
+          <div class="settings-field">
+            <span class="settings-label" data-i18n="main_contractor">Main Contractor</span>
+            <span class="settings-value" id="settingsContractorDisplay">--</span>
+          </div>
+          <div class="settings-field">
+            <span class="settings-label" data-i18n="observer_name">Name</span>
+            <span class="settings-value" id="settingsNameDisplay">--</span>
+          </div>
         </div>
-        <div class="form-group">
-          <label data-i18n="company_name">Company</label>
-          <input type="text" id="settingsCompany">
+        <!-- Editable form (hidden until pen click) -->
+        <div id="settingsEditable" class="hidden">
+          <div class="form-group">
+            <label data-i18n="main_contractor">Main Contractor</label>
+            <select id="settingsContractor">
+              <option value="" data-i18n="select_contractor">Select...</option>
+            </select>
+          </div>
+          <div class="form-group hidden" id="settingsOtherGroup">
+            <label data-i18n="setup_other_contractor">Your contractor name</label>
+            <input type="text" id="settingsContractorOther">
+          </div>
+          <div class="form-group">
+            <label data-i18n="observer_name">Name</label>
+            <input type="text" id="settingsName">
+          </div>
         </div>
       </div>
       <div class="settings-section">
@@ -226,11 +216,57 @@
         </div>
       </div>
       <div class="settings-actions">
-        <button class="settings-btn-action" id="settingsSave" data-i18n="save_settings">Save Settings</button>
+        <button class="settings-btn-action hidden" id="settingsSave" data-i18n="save_settings">Save Settings</button>
         <button class="settings-btn-action" id="settingsForceSync" data-i18n="force_sync">Force Sync Now</button>
         <button class="settings-btn-action danger" id="settingsClearQueue" data-i18n="clear_queue">Clear Pending Queue</button>
       </div>
-      <p style="margin-top:24px;font-size:0.7rem;color:var(--text-muted);text-align:center;">NNE Safety Observer v1.1-ios</p>
+      <p style="margin-top:24px;font-size:0.7rem;color:var(--text-muted);text-align:center;">NNE Safety Observer v2.0-ios</p>
+    </div>
+  </div>
+
+  <!-- ===== History Screen ===== -->
+  <div id="historyScreen" class="settings-screen">
+    <div class="settings-header">
+      <button id="historyBack" class="back-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <h2 data-i18n="history">History</h2>
+    </div>
+    <div class="settings-body" id="historyList">
+      <p class="history-empty" data-i18n="history_empty">No observations sent yet.</p>
+    </div>
+  </div>
+
+  <!-- ===== First-Time Setup Overlay ===== -->
+  <div id="setupOverlay" class="setup-overlay">
+    <div class="setup-card">
+      <div class="setup-header">
+        <img src="assets/nne-logo-white.png" alt="NNE" class="setup-logo">
+        <h2 data-i18n="setup_title">Welcome to NNE Safety Observer</h2>
+        <p class="setup-subtitle" data-i18n="setup_subtitle">Before you start, please tell us who you are</p>
+      </div>
+
+      <div class="setup-body">
+        <div class="form-group">
+          <label data-i18n="setup_contractor_label">Which main contractor are you working for?</label>
+          <select id="setupContractor">
+            <option value="" data-i18n="select_contractor">Select...</option>
+          </select>
+        </div>
+
+        <div class="form-group hidden" id="setupOtherGroup">
+          <label data-i18n="setup_other_contractor">Your contractor name</label>
+          <input type="text" id="setupContractorOther" placeholder="">
+        </div>
+
+        <div class="form-group" style="margin-top:16px">
+          <label data-i18n="setup_name_label">Your name</label>
+          <p class="setup-hint" data-i18n="setup_name_hint">Optional — useful if your company rewards safety observations</p>
+          <input type="text" id="setupName" autocomplete="name">
+        </div>
+      </div>
+
+      <button type="button" class="submit-btn" id="setupDoneBtn" data-i18n="setup_done">Get Started</button>
     </div>
   </div>
 
