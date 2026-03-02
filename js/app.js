@@ -2000,6 +2000,9 @@ async function init() {
         const newWorker = reg.installing;
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed') {
+              newWorker.postMessage({ type: 'SKIP_WAITING' });
+            }
             if (newWorker.state === 'activated') {
               // New SW is active — reload to get fresh cached assets
               window.location.reload();
@@ -2018,6 +2021,11 @@ async function init() {
       console.error('SW registration failed:', err);
     });
 
+    // Reload when a new SW takes control (ensures fresh assets)
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
+
     // Listen for messages from SW
     navigator.serviceWorker.addEventListener('message', event => {
       if (event.data && event.data.type === 'SYNC_COMPLETE') {
@@ -2030,6 +2038,18 @@ async function init() {
       }
     });
   }
+
+  // Check for SW updates when app resumes (Android can restore from background)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(reg => reg.update().catch(() => {}));
+    }
+  });
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(reg => reg.update().catch(() => {}));
+    }
+  });
 
   // If there are already pending items and we have notification permission,
   // ensure the persistent notification is shown (keeps Chrome alive)
