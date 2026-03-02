@@ -93,6 +93,7 @@ const TRANSLATIONS = {
     qr_no_camera: 'Camera access not available',
     qr_found: 'Location set from QR code!',
     enter_manually: 'Enter manually',
+    scan_qr_instead: 'Scan QR code instead',
     history: 'History',
     history_empty: 'No observations sent yet.',
     not_set: 'Not set',
@@ -135,6 +136,7 @@ const TRANSLATIONS = {
     qr_no_camera: 'Kameraadgang ikke tilg\u00e6ngelig',
     qr_found: 'Placering sat fra QR-kode!',
     enter_manually: 'Enter manually',
+    scan_qr_instead: 'Scan QR code instead',
     history: 'History',
     history_empty: 'No observations sent yet.',
     not_set: 'Not set',
@@ -177,6 +179,7 @@ const TRANSLATIONS = {
     qr_no_camera: 'Kamerazugriff nicht verf\u00fcgbar',
     qr_found: 'Standort aus QR-Code gesetzt!',
     enter_manually: 'Enter manually',
+    scan_qr_instead: 'Scan QR code instead',
     history: 'History',
     history_empty: 'No observations sent yet.',
     not_set: 'Not set',
@@ -219,6 +222,7 @@ const TRANSLATIONS = {
     qr_no_camera: 'Kamera niedost\u0119pna',
     qr_found: 'Lokalizacja ustawiona z kodu QR!',
     enter_manually: 'Enter manually',
+    scan_qr_instead: 'Scan QR code instead',
     history: 'History',
     history_empty: 'No observations sent yet.',
     not_set: 'Not set',
@@ -261,6 +265,7 @@ const TRANSLATIONS = {
     qr_no_camera: 'Kamera nepasiekiama',
     qr_found: 'Vieta nustatyta i\u0161 QR kodo!',
     enter_manually: 'Enter manually',
+    scan_qr_instead: 'Scan QR code instead',
     history: 'History',
     history_empty: 'No observations sent yet.',
     not_set: 'Not set',
@@ -303,6 +308,7 @@ const TRANSLATIONS = {
     qr_no_camera: 'Camera nu este disponibil\u0103',
     qr_found: 'Loca\u021bie setat\u0103 din codul QR!',
     enter_manually: 'Enter manually',
+    scan_qr_instead: 'Scan QR code instead',
     history: 'History',
     history_empty: 'No observations sent yet.',
     not_set: 'Not set',
@@ -345,6 +351,7 @@ const TRANSLATIONS = {
     qr_no_camera: 'Kamera nije dostupna',
     qr_found: 'Lokacija postavljena iz QR koda!',
     enter_manually: 'Enter manually',
+    scan_qr_instead: 'Scan QR code instead',
     history: 'History',
     history_empty: 'No observations sent yet.',
     not_set: 'Not set',
@@ -387,6 +394,7 @@ const TRANSLATIONS = {
     qr_no_camera: 'Kamera\u00e5tkomst inte tillg\u00e4nglig',
     qr_found: 'Plats satt fr\u00e5n QR-kod!',
     enter_manually: 'Enter manually',
+    scan_qr_instead: 'Scan QR code instead',
     history: 'History',
     history_empty: 'No observations sent yet.',
     not_set: 'Not set',
@@ -429,6 +437,7 @@ const TRANSLATIONS = {
     qr_no_camera: '\u0915\u0948\u092e\u0930\u093e \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u0939\u0940\u0902 \u0939\u0948',
     qr_found: 'QR \u0915\u094b\u0921 \u0938\u0947 \u0938\u094d\u0925\u093e\u0928 \u0938\u0947\u091f \u0915\u093f\u092f\u093e \u0917\u092f\u093e!',
     enter_manually: 'Enter manually',
+    scan_qr_instead: 'Scan QR code instead',
     history: 'History',
     history_empty: 'No observations sent yet.',
     not_set: 'Not set',
@@ -471,6 +480,7 @@ const TRANSLATIONS = {
     qr_no_camera: 'Kamera nie je dostupn\u00e1',
     qr_found: 'Poloha nastaven\u00e1 z QR k\u00f3du!',
     enter_manually: 'Enter manually',
+    scan_qr_instead: 'Scan QR code instead',
     history: 'History',
     history_empty: 'No observations sent yet.',
     not_set: 'Not set',
@@ -513,6 +523,7 @@ const TRANSLATIONS = {
     qr_no_camera: 'Kamera eri\u015fimi mevcut de\u011fil',
     qr_found: 'QR koddan konum ayarland\u0131!',
     enter_manually: 'Enter manually',
+    scan_qr_instead: 'Scan QR code instead',
     history: 'History',
     history_empty: 'No observations sent yet.',
     not_set: 'Not set',
@@ -555,6 +566,7 @@ const TRANSLATIONS = {
     qr_no_camera: '\u041a\u0430\u043c\u0435\u0440\u0430 \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u0430',
     qr_found: '\u041c\u0456\u0441\u0446\u0435 \u0432\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u043e \u0437 QR-\u043a\u043e\u0434\u0443!',
     enter_manually: 'Enter manually',
+    scan_qr_instead: 'Scan QR code instead',
     history: 'History',
     history_empty: 'No observations sent yet.',
     not_set: 'Not set',
@@ -597,6 +609,7 @@ const TRANSLATIONS = {
     qr_no_camera: '\u041a\u0430\u043c\u0435\u0440\u0430\u0442\u0430 \u043d\u0435 \u0435 \u0434\u043e\u0441\u0442\u044a\u043f\u043d\u0430',
     qr_found: '\u041c\u0435\u0441\u0442\u043e\u043f\u043e\u043b\u043e\u0436\u0435\u043d\u0438\u0435 \u0437\u0430\u0434\u0430\u0434\u0435\u043d\u043e \u043e\u0442 QR \u043a\u043e\u0434!',
     enter_manually: 'Enter manually',
+    scan_qr_instead: 'Scan QR code instead',
     history: 'History',
     history_empty: 'No observations sent yet.',
     not_set: 'Not set',
@@ -639,6 +652,7 @@ const TRANSLATIONS = {
     qr_no_camera: 'Kamera nav pieejama',
     qr_found: 'Vieta iestat\u012bta no QR koda!',
     enter_manually: 'Enter manually',
+    scan_qr_instead: 'Scan QR code instead',
     history: 'History',
     history_empty: 'No observations sent yet.',
     not_set: 'Not set',
@@ -681,6 +695,7 @@ const TRANSLATIONS = {
     qr_no_camera: 'N\u00edl rochtain ceamara ar f\u00e1il',
     qr_found: 'Su\u00edomh socraithe \u00f3n gc\u00f3d QR!',
     enter_manually: 'Enter manually',
+    scan_qr_instead: 'Scan QR code instead',
     history: 'History',
     history_empty: 'No observations sent yet.',
     not_set: 'Not set',
@@ -1891,6 +1906,11 @@ async function init() {
   document.getElementById('manualLocationLink').addEventListener('click', (e) => {
     e.preventDefault();
     showLocationManual();
+  });
+  document.getElementById('backToQrLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('locationQrPrompt').classList.remove('hidden');
+    document.getElementById('locationManual').classList.add('hidden');
   });
   document.getElementById('changeLocationLink').addEventListener('click', (e) => {
     e.preventDefault();
