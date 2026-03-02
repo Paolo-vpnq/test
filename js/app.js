@@ -1525,6 +1525,18 @@ function hideModal() {
 
 // ===== RESET FORM =============================================
 function resetForm() {
+  // Reset location to QR-first state
+  currentBuilding = '';
+  currentLevel = '';
+  document.getElementById('buildingValue').textContent = '--';
+  document.getElementById('levelValue').textContent = '--';
+  document.getElementById('buildingSelect').value = '';
+  document.getElementById('levelSelect').innerHTML = '<option value="" data-i18n="select_level">' + t('select_level') + '</option>';
+  document.getElementById('locationQrPrompt').classList.remove('hidden');
+  document.getElementById('locationSet').classList.add('hidden');
+  document.getElementById('locationManual').classList.add('hidden');
+
+  // Reset observation fields
   photosData = [];
   document.getElementById('safetyCategory').value = '';
   document.getElementById('description').value = '';
