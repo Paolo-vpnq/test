@@ -15,13 +15,19 @@
 <body>
 
   <!-- ===== Access Gate (password required for first-time access) ===== -->
-  <div id="accessGate" style="display:none;position:fixed;inset:0;z-index:99999;background:#070b1e;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <div id="accessGate" style="display:none;position:fixed;inset:0;z-index:99999;background:#070b1e;align-items:center;justify-content:center;flex-direction:column;padding:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
     <div style="max-width:340px;width:100%;text-align:center;">
       <img src="assets/nne-logo-white.png" alt="NNE" style="height:32px;margin-bottom:24px;opacity:0.9;">
       <h2 style="color:#fff;font-size:1.2rem;margin:0 0 6px 0;font-weight:600;">Safety Observer</h2>
       <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin:0 0 28px 0;">Enter the access code to continue</p>
-      <input type="password" id="gatePassword" placeholder="Access code" autocomplete="off"
-        style="width:100%;padding:14px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.08);color:#fff;font-size:1rem;text-align:center;letter-spacing:2px;outline:none;box-sizing:border-box;">
+      <div style="position:relative;width:100%;">
+        <input type="password" id="gatePassword" placeholder="Access code" autocomplete="off"
+          style="width:100%;padding:14px 44px 14px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.08);color:#fff;font-size:1rem;text-align:center;letter-spacing:2px;outline:none;box-sizing:border-box;">
+        <button type="button" id="gateTogglePw" aria-label="Show password"
+          style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;color:rgba(255,255,255,0.4);font-size:0;">
+          <svg id="gateEyeIcon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
       <p id="gateError" style="color:#E4325E;font-size:0.8rem;margin:10px 0 0 0;min-height:1.2em;"></p>
       <button id="gateSubmit" style="width:100%;margin-top:16px;padding:14px;border-radius:10px;border:none;background:#E4325E;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;">
         Enter
@@ -40,6 +46,15 @@
     gate.style.display='flex';
     // Hide everything else until gate is passed
     document.querySelectorAll('body > *:not(#accessGate):not(script)').forEach(function(el){el.style.display='none';});
+    // Eye toggle
+    document.getElementById('gateTogglePw').addEventListener('click',function(){
+      var inp=document.getElementById('gatePassword');
+      var showing=inp.type==='text';
+      inp.type=showing?'password':'text';
+      document.getElementById('gateEyeIcon').innerHTML=showing
+        ?'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
+        :'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    });
     function check(){
       var pw=document.getElementById('gatePassword').value;
       if(!pw){document.getElementById('gateError').textContent='Please enter the access code';return;}
@@ -48,7 +63,7 @@
         if(hex===HASH){
           localStorage.setItem('m3_access_granted','1');
           gate.style.display='none';
-          document.querySelectorAll('body > *:not(script)').forEach(function(el){el.style.display='';});
+          document.querySelectorAll('body > *:not(#accessGate):not(script)').forEach(function(el){el.style.display='';});
         }else{
           document.getElementById('gateError').textContent='Incorrect access code';
           document.getElementById('gatePassword').value='';
