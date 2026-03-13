@@ -14,6 +14,53 @@
 </head>
 <body>
 
+  <!-- ===== Access Gate (password required for first-time access) ===== -->
+  <div id="accessGate" style="display:none;position:fixed;inset:0;z-index:99999;background:#070b1e;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <div style="max-width:340px;width:100%;text-align:center;">
+      <img src="assets/nne-logo-white.png" alt="NNE" style="height:32px;margin-bottom:24px;opacity:0.9;">
+      <h2 style="color:#fff;font-size:1.2rem;margin:0 0 6px 0;font-weight:600;">Safety Observer</h2>
+      <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin:0 0 28px 0;">Enter the access code to continue</p>
+      <input type="password" id="gatePassword" placeholder="Access code" autocomplete="off"
+        style="width:100%;padding:14px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.08);color:#fff;font-size:1rem;text-align:center;letter-spacing:2px;outline:none;box-sizing:border-box;">
+      <p id="gateError" style="color:#E4325E;font-size:0.8rem;margin:10px 0 0 0;min-height:1.2em;"></p>
+      <button id="gateSubmit" style="width:100%;margin-top:16px;padding:14px;border-radius:10px;border:none;background:#E4325E;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;">
+        Enter
+      </button>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var HASH='71b8c824c59518e36eae7b88c60479cfed3f99c69d636a4e3a2a8a2ce1ca8679';
+    var gate=document.getElementById('accessGate');
+    // Grandfather existing users (already set up their identity)
+    if(localStorage.getItem('m3_access_granted')||localStorage.getItem('setupComplete')){
+      gate.style.display='none';
+      return;
+    }
+    gate.style.display='flex';
+    // Hide everything else until gate is passed
+    document.querySelectorAll('body > *:not(#accessGate):not(script)').forEach(function(el){el.style.display='none';});
+    function check(){
+      var pw=document.getElementById('gatePassword').value;
+      if(!pw){document.getElementById('gateError').textContent='Please enter the access code';return;}
+      crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw)).then(function(buf){
+        var hex=Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+        if(hex===HASH){
+          localStorage.setItem('m3_access_granted','1');
+          gate.style.display='none';
+          document.querySelectorAll('body > *:not(script)').forEach(function(el){el.style.display='';});
+        }else{
+          document.getElementById('gateError').textContent='Incorrect access code';
+          document.getElementById('gatePassword').value='';
+          document.getElementById('gatePassword').focus();
+        }
+      });
+    }
+    document.getElementById('gateSubmit').addEventListener('click',check);
+    document.getElementById('gatePassword').addEventListener('keydown',function(e){if(e.key==='Enter')check();});
+  })();
+  </script>
+
   <!-- ===== Header ===== -->
   <header class="app-header">
     <div class="header-brand">

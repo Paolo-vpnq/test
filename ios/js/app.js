@@ -9,7 +9,7 @@
 const CONFIG = {
   // Power Automate POST URL. Set via settings or console: setPowerAutomateUrl('URL')
   // For testing, use webhook.site URL. For production, use Power Automate HTTP trigger URL.
-  ENDPOINT_URL: localStorage.getItem('powerAutomateUrl') || 'https://webhook.site/872b4482-e4d0-4e89-b71a-d9bf48112c81',
+  ENDPOINT_URL: localStorage.getItem('powerAutomateUrl') || 'https://m3-app-so-ingest.azurewebsites.net/api/ingest',
 
   PROJECT: 'M3',
 
@@ -952,17 +952,18 @@ function uuid() {
 let isSyncing = false;
 let lastSyncResult = ''; // For debug display in settings
 
-// Core POST function: uses no-cors to avoid CORS-then-fallback double-send.
-// no-cors gives an opaque response (can't read status), but the data IS sent.
+// Core POST function: sends observation to Azure Durable Functions endpoint.
 async function postObservation(url, payload) {
-  await fetch(url, {
+  const resp = await fetch(url, {
     method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
+    mode: 'cors',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': 'Qj_66hAPM1rXXqWdbEr1TB8Qei4YOe-MDG8dvreyX-U',
+    },
     body: JSON.stringify(payload),
   });
-  // If we get here without throwing, the network request was sent
-  return { ok: true };
+  return { ok: resp.ok, status: resp.status };
 }
 
 async function syncPending() {

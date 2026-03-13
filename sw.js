@@ -1,4 +1,4 @@
-const CACHE_NAME = 'm3-safety-observer-v32';
+const CACHE_NAME = 'm3-safety-observer-v33';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
@@ -217,12 +217,15 @@ function unclaimObservation(db, id) {
   });
 }
 
-// Core POST: no-cors only to avoid double-send from CORS-then-fallback.
+// Core POST: sends observation to Azure Durable Functions endpoint.
 async function postToEndpoint(url, payload) {
   await fetch(url, {
     method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
+    mode: 'cors',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': 'Qj_66hAPM1rXXqWdbEr1TB8Qei4YOe-MDG8dvreyX-U',
+    },
     body: payload,
   });
 }
@@ -313,7 +316,7 @@ async function syncAllPending() {
   }
   if (!endpointUrl) {
     // Last resort: use hardcoded test endpoint
-    endpointUrl = 'https://webhook.site/872b4482-e4d0-4e89-b71a-d9bf48112c81';
+    endpointUrl = 'https://m3-app-so-ingest.azurewebsites.net/api/ingest';
   }
 
   const pending = await getAllPending(db);
