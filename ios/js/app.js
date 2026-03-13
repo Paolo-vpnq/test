@@ -7,9 +7,8 @@
 // Later: load from external file (Excel/JSON endpoint).
 
 const CONFIG = {
-  // Power Automate POST URL. Set via settings or console: setPowerAutomateUrl('URL')
-  // For testing, use webhook.site URL. For production, use Power Automate HTTP trigger URL.
-  ENDPOINT_URL: localStorage.getItem('powerAutomateUrl') || 'https://m3-app-so-ingest.azurewebsites.net/api/ingest',
+  // Ingest endpoint (hardcoded — not user-configurable)
+  ENDPOINT_URL: 'https://m3-app-so-ingest.azurewebsites.net/api/ingest',
 
   PROJECT: 'M3',
 
@@ -34,29 +33,6 @@ const CONFIG = {
     'Bravida',
   ],
 
-  // Add/remove categories here — changes propagate to all users on next update.
-  CATEGORIES: [
-    { id: 1,  name: '1. Access/Exit' },
-    { id: 2,  name: '2. Barriers/Signage/Shielding' },
-    { id: 3,  name: '3. Housekeeping/Waste' },
-    { id: 4,  name: '4. Noise/Dust/Fumes/Health Hazards' },
-    { id: 5,  name: '5. Storage and Handling of Materials' },
-    { id: 6,  name: '6. Electrical Hazards' },
-    { id: 7,  name: '7. Working at Heights' },
-    { id: 8,  name: '8. Lifting/Rigging' },
-    { id: 9,  name: '9. Hot Works' },
-    { id: 10, name: '10. Mobile Elevating Work Equipment' },
-    { id: 11, name: '11. Lighting' },
-    { id: 12, name: '12. Documentation and Procedures' },
-    { id: 13, name: '13. Scaffold/Alloy Towers' },
-    { id: 14, name: '14. Slip/Trip Hazard' },
-    { id: 15, name: '15. Personal Protective Equipment' },
-    { id: 16, name: '16. Use of Tools and Machinery' },
-    { id: 17, name: '17. Environmental Hazards' },
-    { id: 18, name: '18. Emergency Equipment' },
-    { id: 19, name: '19. Excavation/Trenches' },
-    { id: 20, name: '20. Other' },
-  ],
 };
 
 // ===== TRANSLATIONS ==========================================
@@ -72,9 +48,7 @@ const TRANSLATIONS = {
     change_location: 'Change', your_details: 'Your Details',
     observer_name: 'Name', main_contractor: 'Main Contractor',
     select_contractor: 'Select...',
-    observation: 'Observation',
-    category: 'Category',
-    select_category: 'Select category...',
+    observation: 'Observation',
     description: 'Description', photo: 'Photo',
     take_photo: 'Take Photo', from_gallery: 'Gallery',
     submit: 'Submit Observation', new_report: 'New Report',
@@ -115,9 +89,7 @@ const TRANSLATIONS = {
     change_location: 'Change', your_details: 'Dine oplysninger',
     observer_name: 'Navn', main_contractor: 'Hovedentrepren\u00f8r',
     select_contractor: 'V\u00e6lg...',
-    observation: 'Observation',
-    category: 'Kategori',
-    select_category: 'V\u00e6lg kategori...',
+    observation: 'Observation',
     description: 'Beskrivelse', photo: 'Foto',
     take_photo: 'Tag foto', from_gallery: 'Galleri',
     submit: 'Indsend observation', new_report: 'Ny rapport',
@@ -158,9 +130,7 @@ const TRANSLATIONS = {
     change_location: 'Change', your_details: 'Ihre Angaben',
     observer_name: 'Name', main_contractor: 'Hauptauftragnehmer',
     select_contractor: 'W\u00e4hlen...',
-    observation: 'Beobachtung',
-    category: 'Kategorie',
-    select_category: 'Kategorie w\u00e4hlen...',
+    observation: 'Beobachtung',
     description: 'Beschreibung', photo: 'Foto',
     take_photo: 'Foto aufnehmen', from_gallery: 'Galerie',
     submit: 'Beobachtung einreichen', new_report: 'Neuer Bericht',
@@ -201,9 +171,7 @@ const TRANSLATIONS = {
     change_location: 'Change', your_details: 'Twoje dane',
     observer_name: 'Imi\u0119 i nazwisko', main_contractor: 'G\u0142\u00f3wny wykonawca',
     select_contractor: 'Wybierz...',
-    observation: 'Obserwacja',
-    category: 'Kategoria',
-    select_category: 'Wybierz kategori\u0119...',
+    observation: 'Obserwacja',
     description: 'Opis', photo: 'Zdj\u0119cie',
     take_photo: 'Zr\u00f3b zdj\u0119cie', from_gallery: 'Galeria',
     submit: 'Wy\u015blij obserwacj\u0119', new_report: 'Nowy raport',
@@ -244,9 +212,7 @@ const TRANSLATIONS = {
     change_location: 'Change', your_details: 'J\u016bs\u0173 duomenys',
     observer_name: 'Vardas', main_contractor: 'Pagrindinis rangovas',
     select_contractor: 'Pasirinkite...',
-    observation: 'Steb\u0117jimas',
-    category: 'Kategorija',
-    select_category: 'Pasirinkite kategorij\u0105...',
+    observation: 'Steb\u0117jimas',
     description: 'Apra\u0161ymas', photo: 'Nuotrauka',
     take_photo: 'Fotografuoti', from_gallery: 'Galerija',
     submit: 'Pateikti steb\u0117jim\u0105', new_report: 'Nauja ataskaita',
@@ -287,9 +253,7 @@ const TRANSLATIONS = {
     change_location: 'Change', your_details: 'Datele tale',
     observer_name: 'Nume', main_contractor: 'Antreprenor principal',
     select_contractor: 'Selecta\u021bi...',
-    observation: 'Observa\u021bie',
-    category: 'Categorie',
-    select_category: 'Selecta\u021bi categoria...',
+    observation: 'Observa\u021bie',
     description: 'Descriere', photo: 'Fotografie',
     take_photo: 'Face\u021bi o fotografie', from_gallery: 'Galerie',
     submit: 'Trimite\u021bi observa\u021bia', new_report: 'Raport nou',
@@ -330,9 +294,7 @@ const TRANSLATIONS = {
     change_location: 'Change', your_details: 'Va\u0161i podaci',
     observer_name: 'Ime', main_contractor: 'Glavni izvo\u0111a\u010d',
     select_contractor: 'Odaberite...',
-    observation: 'Opa\u017eanje',
-    category: 'Kategorija',
-    select_category: 'Odaberite kategoriju...',
+    observation: 'Opa\u017eanje',
     description: 'Opis', photo: 'Fotografija',
     take_photo: 'Snimi fotografiju', from_gallery: 'Galerija',
     submit: 'Po\u0161alji opa\u017eanje', new_report: 'Novo izvje\u0161\u0107e',
@@ -373,9 +335,7 @@ const TRANSLATIONS = {
     change_location: 'Change', your_details: 'Dina uppgifter',
     observer_name: 'Namn', main_contractor: 'Huvudentrepren\u00f6r',
     select_contractor: 'V\u00e4lj...',
-    observation: 'Observation',
-    category: 'Kategori',
-    select_category: 'V\u00e4lj kategori...',
+    observation: 'Observation',
     description: 'Beskrivning', photo: 'Foto',
     take_photo: 'Ta foto', from_gallery: 'Galleri',
     submit: 'Skicka observation', new_report: 'Ny rapport',
@@ -416,9 +376,7 @@ const TRANSLATIONS = {
     change_location: 'Change', your_details: '\u0906\u092a\u0915\u093e \u0935\u093f\u0935\u0930\u0923',
     observer_name: '\u0928\u093e\u092e', main_contractor: '\u092e\u0941\u0916\u094d\u092f \u0920\u0947\u0915\u0947\u0926\u093e\u0930',
     select_contractor: '\u091a\u0941\u0928\u0947\u0902...',
-    observation: '\u0905\u0935\u0932\u094b\u0915\u0928',
-    category: '\u0936\u094d\u0930\u0947\u0923\u0940',
-    select_category: '\u0936\u094d\u0930\u0947\u0923\u0940 \u091a\u0941\u0928\u0947\u0902...',
+    observation: '\u0905\u0935\u0932\u094b\u0915\u0928',
     description: '\u0935\u093f\u0935\u0930\u0923', photo: '\u092b\u093c\u094b\u091f\u094b',
     take_photo: '\u092b\u093c\u094b\u091f\u094b \u0932\u0947\u0902', from_gallery: '\u0917\u0948\u0932\u0930\u0940',
     submit: '\u0905\u0935\u0932\u094b\u0915\u0928 \u091c\u092e\u093e \u0915\u0930\u0947\u0902', new_report: '\u0928\u0908 \u0930\u093f\u092a\u094b\u0930\u094d\u091f',
@@ -459,9 +417,7 @@ const TRANSLATIONS = {
     change_location: 'Change', your_details: 'Va\u0161e \u00fadaje',
     observer_name: 'Meno', main_contractor: 'Hlavn\u00fd dod\u00e1vate\u013e',
     select_contractor: 'Vyberte...',
-    observation: 'Pozorovanie',
-    category: 'Kateg\u00f3ria',
-    select_category: 'Vyberte kateg\u00f3riu...',
+    observation: 'Pozorovanie',
     description: 'Popis', photo: 'Fotografia',
     take_photo: 'Odfoti\u0165', from_gallery: 'Gal\u00e9ria',
     submit: 'Odosla\u0165 pozorovanie', new_report: 'Nov\u00e1 spr\u00e1va',
@@ -502,9 +458,7 @@ const TRANSLATIONS = {
     change_location: 'Change', your_details: 'Bilgileriniz',
     observer_name: '\u0130sim', main_contractor: 'Ana y\u00fcklenici',
     select_contractor: 'Se\u00e7in...',
-    observation: 'G\u00f6zlem',
-    category: 'Kategori',
-    select_category: 'Kategori se\u00e7in...',
+    observation: 'G\u00f6zlem',
     description: 'A\u00e7\u0131klama', photo: 'Foto\u011fraf',
     take_photo: 'Foto\u011fraf \u00e7ek', from_gallery: 'Galeri',
     submit: 'G\u00f6zlemi g\u00f6nder', new_report: 'Yeni rapor',
@@ -545,9 +499,7 @@ const TRANSLATIONS = {
     change_location: 'Change', your_details: '\u0412\u0430\u0448\u0456 \u0434\u0430\u043d\u0456',
     observer_name: "\u0406\u043c'\u044f", main_contractor: '\u0413\u043e\u043b\u043e\u0432\u043d\u0438\u0439 \u043f\u0456\u0434\u0440\u044f\u0434\u043d\u0438\u043a',
     select_contractor: '\u041e\u0431\u0435\u0440\u0456\u0442\u044c...',
-    observation: '\u0421\u043f\u043e\u0441\u0442\u0435\u0440\u0435\u0436\u0435\u043d\u043d\u044f',
-    category: '\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0456\u044f',
-    select_category: '\u041e\u0431\u0435\u0440\u0456\u0442\u044c \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0456\u044e...',
+    observation: '\u0421\u043f\u043e\u0441\u0442\u0435\u0440\u0435\u0436\u0435\u043d\u043d\u044f',
     description: '\u041e\u043f\u0438\u0441', photo: '\u0424\u043e\u0442\u043e',
     take_photo: '\u0417\u0440\u043e\u0431\u0438\u0442\u0438 \u0444\u043e\u0442\u043e', from_gallery: '\u0413\u0430\u043b\u0435\u0440\u0435\u044f',
     submit: '\u041d\u0430\u0434\u0456\u0441\u043b\u0430\u0442\u0438 \u0441\u043f\u043e\u0441\u0442\u0435\u0440\u0435\u0436\u0435\u043d\u043d\u044f', new_report: '\u041d\u043e\u0432\u0438\u0439 \u0437\u0432\u0456\u0442',
@@ -588,9 +540,7 @@ const TRANSLATIONS = {
     change_location: 'Change', your_details: '\u0412\u0430\u0448\u0438\u0442\u0435 \u0434\u0430\u043d\u043d\u0438',
     observer_name: '\u0418\u043c\u0435', main_contractor: '\u0413\u043b\u0430\u0432\u0435\u043d \u0438\u0437\u043f\u044a\u043b\u043d\u0438\u0442\u0435\u043b',
     select_contractor: '\u0418\u0437\u0431\u0435\u0440\u0435\u0442\u0435...',
-    observation: '\u041d\u0430\u0431\u043b\u044e\u0434\u0435\u043d\u0438\u0435',
-    category: '\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044f',
-    select_category: '\u0418\u0437\u0431\u0435\u0440\u0435\u0442\u0435 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044f...',
+    observation: '\u041d\u0430\u0431\u043b\u044e\u0434\u0435\u043d\u0438\u0435',
     description: '\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435', photo: '\u0421\u043d\u0438\u043c\u043a\u0430',
     take_photo: '\u041d\u0430\u043f\u0440\u0430\u0432\u0438 \u0441\u043d\u0438\u043c\u043a\u0430', from_gallery: '\u0413\u0430\u043b\u0435\u0440\u0438\u044f',
     submit: '\u0418\u0437\u043f\u0440\u0430\u0442\u0438 \u043d\u0430\u0431\u043b\u044e\u0434\u0435\u043d\u0438\u0435', new_report: '\u041d\u043e\u0432 \u0434\u043e\u043a\u043b\u0430\u0434',
@@ -631,9 +581,7 @@ const TRANSLATIONS = {
     change_location: 'Change', your_details: 'J\u016bsu dati',
     observer_name: 'V\u0101rds', main_contractor: 'Galvenais uz\u0146\u0113m\u0113js',
     select_contractor: 'Izv\u0113lieties...',
-    observation: 'Nov\u0113rojums',
-    category: 'Kategorija',
-    select_category: 'Izv\u0113lieties kategoriju...',
+    observation: 'Nov\u0113rojums',
     description: 'Apraksts', photo: 'Foto',
     take_photo: 'Uz\u0146emt foto', from_gallery: 'Galerija',
     submit: 'Iesniegt nov\u0113rojumu', new_report: 'Jauns zi\u0146ojums',
@@ -674,9 +622,7 @@ const TRANSLATIONS = {
     change_location: 'Change', your_details: 'Do shonra\u00ed',
     observer_name: 'Ainm', main_contractor: 'Pr\u00edomhchonraitheoir',
     select_contractor: 'Roghnaigh...',
-    observation: 'Breathn\u00fa',
-    category: 'Catag\u00f3ir',
-    select_category: 'Roghnaigh catag\u00f3ir...',
+    observation: 'Breathn\u00fa',
     description: 'Cur s\u00edos', photo: 'Grianghraf',
     take_photo: 'T\u00f3g grianghraf', from_gallery: 'Gailear\u00e1\u00ed',
     submit: 'Seol breathn\u00fa', new_report: 'Tuairisc nua',
@@ -818,7 +764,6 @@ function addToHistory(observation) {
         datetime_created: observation.datetime_created || observation.timestamp,
         building: observation.building,
         level: observation.level,
-        safetyCategory: observation.safetyCategory || '',
         description: observation.description,
         mainContractor: observation.mainContractor || '',
       };
@@ -1171,17 +1116,6 @@ function populateContractorSelect(selectId) {
   sel.appendChild(otherOpt);
 }
 
-function populateCategorySelect() {
-  const sel = document.getElementById('safetyCategory');
-  while (sel.options.length > 1) sel.remove(1);
-  CONFIG.CATEGORIES.forEach(cat => {
-    const opt = document.createElement('option');
-    opt.value = cat.name;
-    opt.textContent = cat.name;
-    sel.appendChild(opt);
-  });
-}
-
 // ===== QR / URL PARAMS ========================================
 function parseUrlParams() {
   const params = new URLSearchParams(window.location.search);
@@ -1449,7 +1383,6 @@ async function submitObservation() {
     level: level,
     mainContractor: mainContractorValue,
     observerName: savedObserverName,
-    safetyCategory: document.getElementById('safetyCategory').value || '',
     description: document.getElementById('description').value.trim(),
     photo: photosData.length > 0 ? photosData[0] : '',
     photos: photosData.length > 0 ? photosData : [],
@@ -1546,7 +1479,6 @@ function resetForm() {
 
   // Reset observation fields
   photosData = [];
-  document.getElementById('safetyCategory').value = '';
   document.getElementById('description').value = '';
   document.getElementById('photoGrid').innerHTML = '';
   document.getElementById('cameraInput').value = '';
@@ -1555,7 +1487,6 @@ function resetForm() {
 
 // ===== SETTINGS ===============================================
 async function openSettings() {
-  document.getElementById('settingsEndpoint').value = CONFIG.ENDPOINT_URL || '';
 
   // Load identity for read-only display
   try {
@@ -1610,17 +1541,9 @@ function saveSettings() {
   const name = document.getElementById('settingsName').value.trim();
   const contractor = document.getElementById('settingsContractor').value;
   const contractorOther = document.getElementById('settingsContractorOther').value.trim();
-  const endpoint = document.getElementById('settingsEndpoint').value.trim();
 
   // Save identity to IndexedDB + cookies
   saveIdentity(name, contractor, contractorOther);
-
-  if (endpoint) {
-    localStorage.setItem('powerAutomateUrl', endpoint);
-    CONFIG.ENDPOINT_URL = endpoint;
-    saveSetting('powerAutomateUrl', endpoint).catch(() => {});
-    sendEndpointToSW();
-  }
 
   closeSettings();
 }
@@ -1638,7 +1561,6 @@ async function openHistory() {
       return '<div class="history-item">' +
         '<div class="history-date">' + date + '</div>' +
         '<div class="history-location">' + (e.building || '--') + ' / ' + (e.level || '--') + '</div>' +
-        (e.safetyCategory ? '<div class="history-category">' + e.safetyCategory + '</div>' : '') +
         '<div class="history-desc">' + e.description + '</div>' +
       '</div>';
     }).join('');
@@ -1802,15 +1724,6 @@ function sendEndpointToSW() {
   }).catch(() => {});
 }
 
-// ===== GLOBAL HELPERS (for console access) ====================
-window.setPowerAutomateUrl = function(url) {
-  localStorage.setItem('powerAutomateUrl', url);
-  CONFIG.ENDPOINT_URL = url;
-  saveSetting('powerAutomateUrl', url).catch(() => {});
-  sendEndpointToSW();
-  console.log('Power Automate URL set to:', url);
-};
-
 // ===== INIT ===================================================
 async function init() {
   // Open IndexedDB
@@ -1821,17 +1734,8 @@ async function init() {
     navigator.storage.persist().catch(() => {});
   }
 
-  // Restore endpoint URL from IndexedDB (more persistent than localStorage)
-  try {
-    const savedEndpoint = await getSetting('powerAutomateUrl');
-    if (savedEndpoint) CONFIG.ENDPOINT_URL = savedEndpoint;
-  } catch (e) {}
-
-  // Always persist the endpoint URL to IndexedDB so the SW can read it
-  // during background sync (SW can't access localStorage or CONFIG)
-  if (CONFIG.ENDPOINT_URL) {
-    saveSetting('powerAutomateUrl', CONFIG.ENDPOINT_URL).catch(() => {});
-  }
+  // Persist endpoint URL to IndexedDB so the SW can read it during background sync
+  saveSetting('powerAutomateUrl', CONFIG.ENDPOINT_URL).catch(() => {});
 
   // Parse QR URL params
   parseUrlParams();
@@ -1849,7 +1753,6 @@ async function init() {
 
   // Populate dropdowns
   populateBuildingSelect();
-  populateCategorySelect();
 
   // Prune old history entries
   pruneOldHistory();

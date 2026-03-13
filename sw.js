@@ -1,4 +1,4 @@
-const CACHE_NAME = 'm3-safety-observer-v33';
+const CACHE_NAME = 'm3-safety-observer-v34';
 const DB_NAME = 'm3-safety-observer';
 const STORE_NAME = 'observations';
 const SETTINGS_STORE = 'settings';
@@ -244,7 +244,6 @@ function addToHistorySW(db, observation) {
         datetime_created: observation.datetime_created || observation.timestamp,
         building: observation.building,
         level: observation.level,
-        safetyCategory: observation.safetyCategory || '',
         description: observation.description,
         mainContractor: observation.mainContractor || '',
       };
